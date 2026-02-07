@@ -4,21 +4,20 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth.js";
 import categoryRoutes from "./routes/category.routes.js";
 import budgetRoutes from "./routes/budget.route.js";
+import transactionRoutes from "./routes/transaction.routes.js";
+import cors from "cors";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 // CORS middleware - Fix for Better Auth
 app.use((req, res, next) => {
-  // Set Origin header if missing (for Postman/API clients)
-  if (!req.headers.origin) {
-    req.headers.origin = `http://localhost:${process.env.PORT || 5000}`;
-  }
-
-  res.header("Access-Control-Allow-Origin", "*");
+  // Allow frontend origin
+  const origin = req.headers.origin || "http://localhost:5173";
+  res.header("Access-Control-Allow-Origin", origin);
+  res.header("Access-Control-Allow-Credentials", "true");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie",
@@ -46,6 +45,10 @@ app.use("/api/categories", categoryRoutes);
 
 // Budget routes
 app.use("/api/budgets", budgetRoutes);
+
+// Transaction routes
+app.use("/api/transactions", transactionRoutes);
+
 app.get("/api/test", async (req, res) => {
   const session = await auth.api.getSession({
     headers: req.headers as any,
@@ -87,12 +90,18 @@ app.listen(PORT, () => {
   console.log(`   POST   http://localhost:${PORT}/api/categories`);
   console.log(`   PUT    http://localhost:${PORT}/api/categories/:id`);
   console.log(`   DELETE http://localhost:${PORT}/api/categories/:id`);
-  console.log(`\n� Budget Endpoints:`);
+  console.log(`\n💰 Budget Endpoints:`);
   console.log(`   GET    http://localhost:${PORT}/api/budgets`);
   console.log(`   POST   http://localhost:${PORT}/api/budgets`);
   console.log(`   PUT    http://localhost:${PORT}/api/budgets/:id`);
   console.log(`   DELETE http://localhost:${PORT}/api/budgets/:id`);
-  console.log(`\n�📝 Test:`);
+  console.log(`\n💸 Transaction Endpoints:`);
+  console.log(`   GET    http://localhost:${PORT}/api/transactions`);
+  console.log(`   GET    http://localhost:${PORT}/api/transactions/:id`);
+  console.log(`   POST   http://localhost:${PORT}/api/transactions`);
+  console.log(`   PUT    http://localhost:${PORT}/api/transactions/:id`);
+  console.log(`   DELETE http://localhost:${PORT}/api/transactions/:id`);
+  console.log(`\n📝 Test:`);
   console.log(`   GET  http://localhost:${PORT}/api/test (protected)`);
 });
 
