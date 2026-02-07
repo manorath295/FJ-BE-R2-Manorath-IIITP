@@ -10,13 +10,21 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// CORS middleware - Fix for Better Auth
 app.use((req, res, next) => {
+  // Set Origin header if missing (for Postman/API clients)
+  if (!req.headers.origin) {
+    req.headers.origin = `http://localhost:${process.env.PORT || 5000}`;
+  }
+
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie",
   );
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }

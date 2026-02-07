@@ -11,13 +11,6 @@ export async function createBudget(req: Request, res: Response) {
   const userId = req.userId!;
   const { categoryId, amount, period, startDate, endDate } = req.body;
 
-  if (!categoryId || !amount || !period) {
-    return res.status(400).json({
-      success: false,
-      message: "Category, amount, and period are required",
-    });
-  }
-
   const budget = await budgetService.createBudget(userId, {
     categoryId,
     amount: parseFloat(amount),
@@ -44,9 +37,6 @@ export async function updateBudget(req: Request, res: Response) {
   res.json(successResponse(budget, "Budget updated"));
 }
 
-/**
- * Delete budget
- */
 export async function deleteBudget(req: Request, res: Response) {
   const userId = req.userId!;
   const id = req.params.id as string;

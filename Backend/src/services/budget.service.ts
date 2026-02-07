@@ -1,11 +1,7 @@
 import prisma from "../lib/db.js";
 
-// Define BudgetPeriod enum locally
 type BudgetPeriod = "WEEKLY" | "MONTHLY" | "YEARLY";
 
-/**
- * Get all budgets for a user
- */
 export async function getUserBudgets(userId: string) {
   return await prisma.budget.findMany({
     where: { userId },
@@ -24,9 +20,7 @@ export async function getUserBudgets(userId: string) {
   });
 }
 
-/**
- * Create new budget
- */
+
 export async function createBudget(
   userId: string,
   data: {
@@ -37,7 +31,6 @@ export async function createBudget(
     endDate?: Date;
   },
 ) {
-  // Check if budget already exists for this category and period
   const existing = await prisma.budget.findFirst({
     where: {
       userId,
@@ -49,8 +42,6 @@ export async function createBudget(
   if (existing) {
     throw new Error("Budget already exists for this category and period");
   }
-
-  // Verify category exists and belongs to user
   const category = await prisma.category.findFirst({
     where: {
       id: data.categoryId,
@@ -62,7 +53,6 @@ export async function createBudget(
     throw new Error("Category not found");
   }
 
-  // Ensure dates are defined
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -82,9 +72,6 @@ export async function createBudget(
   });
 }
 
-/**
- * Update budget
- */
 export async function updateBudget(
   budgetId: string,
   userId: string,
@@ -111,10 +98,6 @@ export async function updateBudget(
     },
   });
 }
-
-/**
- * Delete budget
- */
 export async function deleteBudget(budgetId: string, userId: string) {
   const budget = await prisma.budget.findFirst({
     where: { id: budgetId, userId },
