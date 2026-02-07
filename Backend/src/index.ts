@@ -2,10 +2,11 @@ import "dotenv/config";
 import express from "express";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth.js";
+import categoryRoutes from "./routes/category.routes.js";
+import budgetRoutes from "./routes/budget.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -13,7 +14,7 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie",
   );
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   if (req.method === "OPTIONS") {
@@ -29,8 +30,14 @@ app.get("/health", (req, res) => {
     message: "Finance Tracker API",
     timestamp: new Date().toISOString(),
   });
-})
+});
 app.use("/api/auth", toNodeHandler(auth));
+
+// Category routes
+app.use("/api/categories", categoryRoutes);
+
+// Budget routes
+app.use("/api/budgets", budgetRoutes);
 app.get("/api/test", async (req, res) => {
   const session = await auth.api.getSession({
     headers: req.headers as any,
@@ -62,12 +69,22 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log("🚀 Finance Tracker API");
   console.log(`✅ Server: http://localhost:${PORT}`);
-  console.log(`\n📍 Auth Endpoints (Better Auth):`);
+  console.log(`\n📍 Auth Endpoints:`);
   console.log(`   POST http://localhost:${PORT}/api/auth/sign-up/email`);
   console.log(`   POST http://localhost:${PORT}/api/auth/sign-in/email`);
   console.log(`   POST http://localhost:${PORT}/api/auth/sign-out`);
   console.log(`   GET  http://localhost:${PORT}/api/auth/get-session`);
-  console.log(`\n📝 Test:`);
+  console.log(`\n📁 Category Endpoints:`);
+  console.log(`   GET    http://localhost:${PORT}/api/categories`);
+  console.log(`   POST   http://localhost:${PORT}/api/categories`);
+  console.log(`   PUT    http://localhost:${PORT}/api/categories/:id`);
+  console.log(`   DELETE http://localhost:${PORT}/api/categories/:id`);
+  console.log(`\n� Budget Endpoints:`);
+  console.log(`   GET    http://localhost:${PORT}/api/budgets`);
+  console.log(`   POST   http://localhost:${PORT}/api/budgets`);
+  console.log(`   PUT    http://localhost:${PORT}/api/budgets/:id`);
+  console.log(`   DELETE http://localhost:${PORT}/api/budgets/:id`);
+  console.log(`\n�📝 Test:`);
   console.log(`   GET  http://localhost:${PORT}/api/test (protected)`);
 });
 
