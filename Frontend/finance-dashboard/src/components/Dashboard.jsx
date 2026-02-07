@@ -97,15 +97,35 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[var(--bg-primary)] p-6">
       {/* Header */}
       <header className="mb-8">
-        <h1
-          className="text-4xl font-bold mb-2"
-          style={{ color: "var(--accent-cyan)" }}
-        >
-          FINANCE TRACKER
-        </h1>
-        <p className="text-[var(--text-secondary)] mono">
-          Real-time financial overview and analytics
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1
+              className="text-4xl font-bold mb-2"
+              style={{ color: "var(--accent-cyan)" }}
+            >
+              FINANCE TRACKER
+            </h1>
+            <p className="text-[var(--text-secondary)] mono">
+              Real-time financial overview and analytics
+            </p>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex gap-3">
+            <a
+              href="/dashboard"
+              className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded text-sm font-bold uppercase hover:border-[var(--accent-cyan)] transition-colors"
+            >
+              Dashboard
+            </a>
+            <a
+              href="/reports"
+              className="px-4 py-2 bg-[var(--accent-purple)] text-white rounded text-sm font-bold uppercase hover:opacity-80 transition-opacity"
+            >
+              Reports
+            </a>
+          </div>
+        </div>
       </header>
 
       {/* Dashboard Grid */}
