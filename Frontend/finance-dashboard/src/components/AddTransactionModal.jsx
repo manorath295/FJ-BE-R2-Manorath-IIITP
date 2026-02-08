@@ -32,123 +32,179 @@ export default function AddTransactionModal({ isOpen, onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+    setLoading(true);
 
     try {
-      const payload = {
-        ...formData,
-        amount: parseFloat(formData.amount),
-        date: new Date(formData.date).toISOString(),
-        categoryId: formData.categoryId || undefined,
-      };
+      const formDataInstance = new FormData();
+      formDataInstance.append("amount", parseFloat(formData.amount));
+      formDataInstance.append("currency", formData.currency);
+      formDataInstance.append("type", formData.type);
+      formDataInstance.append("categoryId", formData.categoryId);
+      formDataInstance.append("description", formData.description);
+      formDataInstance.append("date", new Date(formData.date).toISOString());
+      if (formData.isRecurring) {
+        formDataInstance.append("isRecurring", formData.isRecurring);
+        formDataInstance.append(
+          "recurringFrequency",
+          formData.recurringFrequency,
+        );
+      }
+      if (formData.receipt) {
+        formDataInstance.append("receipt", formData.receipt);
+      }
 
-      await transactionsAPI.create(payload);
+      await transactionsAPI.create(formDataInstance);
       onSuccess();
       onClose();
+      // Reset form
       setFormData({
-        categoryId: "",
         amount: "",
+        currency: "USD",
         type: "EXPENSE",
+        categoryId: "",
         description: "",
         date: new Date().toISOString().split("T")[0],
-        currency: "USD",
+        isRecurring: false,
+        recurringFrequency: "MONTHLY",
+        receipt: null,
       });
     } catch (err) {
-      console.error("Error creating transaction:", err);
-      setError(err.response?.data?.message || "Failed to create transaction");
+      console.error("Error adding transaction:", err);
+      setError(err.response?.data?.error || "Failed to add transaction");
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter categories by type
+  if (!isOpen) return null;
+
   const filteredCategories = categories.filter(
     (cat) => cat.type === formData.type,
   );
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[var(--bg-card)] border-2 border-[var(--border-primary)] rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-[var(--accent-cyan)]">
-            Add Transaction
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-[var(--bg-card)] border-2 border-[var(--border-primary)] rounded-lg w-full max-w-md p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
+        <h2
+          className="text-2xl font-bold mb-6"
+          style={{ color: "var(--accent-cyan)" }}
+        >
+          ADD TRANSACTION
+        </h2>
 
         {error && (
-          <div className="bg-red-500/10 border border-[var(--error)] p-3 rounded mb-4">
-            <p className="text-sm text-[var(--error)]">{error}</p>
+          <div className="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded mb-4 text-sm">
+            {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Type */}
-          <div>
-            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
-              Type
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() =>
-                  setFormData({ ...formData, type: "INCOME", categoryId: "" })
+          {/* Amount Row */}
+          <div className="flex gap-4">
+            {/* Currency */}
+            <div className="w-24">
+              <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
+                Curr
+              </label>
+              <select
+                value={formData.currency}
+                onChange={(e) =>
+                  setFormData({ ...formData, currency: e.target.value })
                 }
-                className={`py-2 px-4 rounded font-bold uppercase tracking-wider transition-all ${
-                  formData.type === "INCOME"
-                    ? "bg-[var(--success)] text-[var(--bg-primary)]"
-                    : "bg-[var(--bg-tertiary)] border border-[var(--border-primary)] text-[var(--text-secondary)]"
-                }`}
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-2 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none"
               >
-                Income
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFormData({ ...formData, type: "EXPENSE", categoryId: "" })
+                {["USD", "EUR", "GBP", "INR", "JPY", "CAD", "AUD", "CNY"].map(
+                  (c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
+
+            {/* Amount */}
+            <div className="flex-1">
+              <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
+                Amount
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={formData.amount}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      amount: e.target.value,
+                    })
+                  }
+                  className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none font-mono"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            {/* Type */}
+            <div className="w-1/3">
+              <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
+                Type
+              </label>
+              <select
+                value={formData.type}
+                onChange={(e) =>
+                  setFormData({ ...formData, type: e.target.value })
                 }
-                className={`py-2 px-4 rounded font-bold uppercase tracking-wider transition-all ${
-                  formData.type === "EXPENSE"
-                    ? "bg-[var(--error)] text-[var(--bg-primary)]"
-                    : "bg-[var(--bg-tertiary)] border border-[var(--border-primary)] text-[var(--text-secondary)]"
-                }`}
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none"
               >
-                Expense
-              </button>
+                <option value="EXPENSE">Expense</option>
+                <option value="INCOME">Income</option>
+              </select>
             </div>
           </div>
 
-          {/* Amount */}
+          {/* Category */}
           <div>
-            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
-              Amount
+            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
+              Category
             </label>
-            <input
-              type="number"
+            <select
               required
-              step="0.01"
-              min="0"
-              value={formData.amount}
+              value={formData.categoryId}
               onChange={(e) =>
-                setFormData({ ...formData, amount: e.target.value })
+                setFormData({
+                  ...formData,
+                  categoryId: e.target.value,
+                })
               }
-              className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none mono text-lg"
-              placeholder="0.00"
-            />
+              className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none"
+            >
+              <option value="">Select Category</option>
+              {filteredCategories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            {filteredCategories.length === 0 && (
+              <p className="text-xs text-[var(--text-muted)] mt-1">
+                No {formData.type.toLowerCase()} categories yet
+              </p>
+            )}
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
+            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
               Description
             </label>
             <input
@@ -159,34 +215,8 @@ export default function AddTransactionModal({ isOpen, onClose, onSuccess }) {
                 setFormData({ ...formData, description: e.target.value })
               }
               className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none"
-              placeholder="e.g., Monthly salary, Grocery shopping"
+              placeholder="e.g. Monthly Rent"
             />
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
-              Category (Optional)
-            </label>
-            <select
-              value={formData.categoryId}
-              onChange={(e) =>
-                setFormData({ ...formData, categoryId: e.target.value })
-              }
-              className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none"
-            >
-              <option value="">No Category</option>
-              {filteredCategories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            {filteredCategories.length === 0 && (
-              <p className="text-xs text-[var(--text-muted)] mt-1">
-                No {formData.type.toLowerCase()} categories yet
-              </p>
-            )}
           </div>
 
           {/* Date */}
@@ -202,6 +232,24 @@ export default function AddTransactionModal({ isOpen, onClose, onSuccess }) {
                 setFormData({ ...formData, date: e.target.value })
               }
               className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none"
+            />
+          </div>
+
+          {/* Receipt Upload */}
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
+              Receipt (Optional)
+            </label>
+            <input
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  receipt: e.target.files[0],
+                })
+              }
+              className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--accent-cyan)] file:text-[var(--bg-primary)] hover:file:bg-opacity-80"
             />
           </div>
 

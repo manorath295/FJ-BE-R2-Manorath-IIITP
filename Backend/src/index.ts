@@ -5,30 +5,21 @@ import { auth } from "./lib/auth.js";
 import categoryRoutes from "./routes/category.routes.js";
 import budgetRoutes from "./routes/budget.route.js";
 import transactionRoutes from "./routes/transaction.routes.js";
+import importRoutes from "./routes/import.routes.js";
 import cors from "cors";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  }),
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// CORS middleware - Fix for Better Auth
-app.use((req, res, next) => {
-  // Allow frontend origin
-  const origin = req.headers.origin || "http://localhost:5173";
-  res.header("Access-Control-Allow-Origin", origin);
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie",
-  );
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
-});
 
 // Health check
 app.get("/health", (req, res) => {
@@ -48,6 +39,9 @@ app.use("/api/budgets", budgetRoutes);
 
 // Transaction routes
 app.use("/api/transactions", transactionRoutes);
+
+// Import routes
+app.use("/api/import", importRoutes);
 
 app.get("/api/test", async (req, res) => {
   const session = await auth.api.getSession({

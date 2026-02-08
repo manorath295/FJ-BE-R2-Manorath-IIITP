@@ -10,11 +10,14 @@ export const RecurringFrequencyEnum = z.enum([
 
 export const createTransactionSchema = z.object({
   categoryId: z.string().uuid("Invalid category ID").optional(),
-  amount: z
-    .number()
-    .multipleOf(0.01, "Amount must have at most 2 decimal places")
-    .min(-9999999999.99, "Amount too small")
-    .max(9999999999.99, "Amount too large"),
+  amount: z.preprocess(
+    (a) => parseFloat(a as string),
+    z
+      .number()
+      .multipleOf(0.01, "Amount must have at most 2 decimal places")
+      .min(-9999999999.99, "Amount too small")
+      .max(9999999999.99, "Amount too large"),
+  ),
   type: TransactionTypeEnum,
   description: z
     .string()
@@ -25,7 +28,10 @@ export const createTransactionSchema = z.object({
     .string()
     .length(3, "Currency must be 3 characters (e.g., USD)")
     .optional(),
-  isRecurring: z.boolean().optional(),
+  isRecurring: z.preprocess(
+    (val) => val === "true" || val === true,
+    z.boolean().optional(),
+  ),
   recurringFrequency: RecurringFrequencyEnum.optional(),
 });
 

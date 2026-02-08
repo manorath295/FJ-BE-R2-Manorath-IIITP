@@ -5,10 +5,9 @@ const API_BASE_URL = "http://localhost:3000/api";
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
+  baseURL: API_BASE_URL,
   withCredentials: true, // Important for cookie-based auth
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // headers: { "Content-Type": "application/json" } // REMOVE THIS: Axios sets it automatically correctly
 });
 
 // Auth API
@@ -44,6 +43,16 @@ export const budgetsAPI = {
   create: (data) => api.post("/budgets", data),
   update: (id, data) => api.put(`/budgets/${id}`, data),
   delete: (id) => api.delete(`/budgets/${id}`),
+};
+
+// Import API
+export const importAPI = {
+  preview: (file) => {
+    const formData = new FormData();
+    formData.append("statement", file);
+    return api.post("/import/preview", formData);
+  },
+  confirm: (transactions) => api.post("/import/confirm", { transactions }),
 };
 
 export default api;

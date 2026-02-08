@@ -146,6 +146,7 @@ model Transaction {
   type               TransactionType
   description        String
   date               DateTime
+  receiptUrl         String?              // Direct string URL for simpler access matching current code
   receiptId          String?              @unique
   isRecurring        Boolean              @default(false)
   recurringFrequency RecurringFrequency?

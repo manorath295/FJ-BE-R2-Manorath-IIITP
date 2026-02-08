@@ -7,6 +7,8 @@ import {
   updateTransactionSchema,
 } from "../validators/transaction.validator.js";
 
+import { upload } from "../middleware/upload.js";
+
 const router = Router();
 router.use(requireAuth);
 
@@ -14,11 +16,13 @@ router.get("/", transactionController.getTransactions);
 router.get("/:id", transactionController.getTransaction);
 router.post(
   "/",
+  upload.single("receipt"),
   validate(createTransactionSchema),
   transactionController.createTransaction,
 );
 router.put(
   "/:id",
+  upload.single("receipt"),
   validate(updateTransactionSchema),
   transactionController.updateTransaction,
 );

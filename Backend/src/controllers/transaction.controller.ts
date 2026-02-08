@@ -37,15 +37,31 @@ export async function createTransaction(req: Request, res: Response) {
     recurringFrequency,
   } = req.body;
 
+  console.log("Create Transaction Request Received");
+  console.log("File:", req.file);
+  console.log("Body:", req.body);
+  console.log("Currency:", currency);
+
+  const receiptUrl = req.file ? req.file.path : undefined;
+
+  if (receiptUrl) {
+    console.log("✅ File uploaded to Cloudinary successfully:", receiptUrl);
+  } else {
+    console.log("⚠️ No file uploaded with this transaction.");
+  }
+
+  // Zod middleware (validate.middleware) already validated and sanitized Types
+  // So we can use req.body directly after validation
   const transaction = await transactionService.createTransaction(userId, {
     categoryId,
-    amount,
+    amount, // Zod has already coerced this to number
     type,
     description,
-    date: new Date(date),
+    date: new Date(date), // Date string still needs to be converted to Date object for Prisma
     currency,
     isRecurring,
     recurringFrequency,
+    receiptUrl,
   });
 
   res.status(201).json(successResponse(transaction, "Transaction created"));

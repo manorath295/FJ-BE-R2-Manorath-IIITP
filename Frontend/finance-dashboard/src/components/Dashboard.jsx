@@ -8,6 +8,7 @@ import TransactionList from "./TransactionList";
 import AddTransactionModal from "./AddTransactionModal";
 import AddCategoryModal from "./AddCategoryModal";
 import AddBudgetModal from "./AddBudgetModal";
+import BankImportModal from "./BankImportModal";
 import {
   Loader2,
   AlertCircle,
@@ -15,6 +16,7 @@ import {
   DollarSign,
   Tag,
   Target,
+  FileUp,
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -27,6 +29,7 @@ export default function Dashboard() {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -157,34 +160,41 @@ export default function Dashboard() {
       {/* Floating Action Buttons */}
       <div className="fixed bottom-6 right-6 flex flex-col gap-3">
         <button
+          onClick={() => setShowImportModal(true)}
+          className="bg-[var(--accent-purple)] text-white p-4 rounded-full shadow-lg hover:opacity-80 transition-opacity"
+          title="Import Bank Statement"
+        >
+          <FileUp className="w-6 h-6" />
+        </button>
+        <button
           onClick={() => setShowTransactionModal(true)}
-          className="bg-[var(--accent-cyan)] text-[var(--bg-primary)] p-4 rounded-full shadow-lg hover:opacity-80 transition-opacity flex items-center gap-2 font-bold"
+          className="bg-[var(--accent-cyan)] text-[var(--bg-primary)] p-4 rounded-full shadow-lg hover:opacity-80 transition-opacity"
           title="Add Transaction"
         >
           <Plus className="w-6 h-6" />
-          <span className="hidden md:inline">Transaction</span>
         </button>
-
         <button
           onClick={() => setShowCategoryModal(true)}
-          className="bg-[var(--accent-purple)] text-white p-4 rounded-full shadow-lg hover:opacity-80 transition-opacity flex items-center gap-2 font-bold"
+          className="bg-[var(--accent-purple)] text-white p-4 rounded-full shadow-lg hover:opacity-80 transition-opacity"
           title="Add Category"
         >
           <Tag className="w-6 h-6" />
-          <span className="hidden md:inline">Category</span>
         </button>
-
         <button
           onClick={() => setShowBudgetModal(true)}
-          className="bg-[var(--accent-pink)] text-white p-4 rounded-full shadow-lg hover:opacity-80 transition-opacity flex items-center gap-2 font-bold"
+          className="bg-[var(--accent-green)] text-[var(--bg-primary)] p-4 rounded-full shadow-lg hover:opacity-80 transition-opacity"
           title="Add Budget"
         >
           <Target className="w-6 h-6" />
-          <span className="hidden md:inline">Budget</span>
         </button>
       </div>
 
       {/* Modals */}
+      <BankImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onSuccess={fetchDashboardData}
+      />
       <AddTransactionModal
         isOpen={showTransactionModal}
         onClose={() => setShowTransactionModal(false)}
@@ -194,10 +204,7 @@ export default function Dashboard() {
       <AddCategoryModal
         isOpen={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}
-        onSuccess={() => {
-          // Categories don't directly affect dashboard, but we can refresh anyway
-          fetchDashboardData();
-        }}
+        onSuccess={fetchDashboardData}
       />
 
       <AddBudgetModal

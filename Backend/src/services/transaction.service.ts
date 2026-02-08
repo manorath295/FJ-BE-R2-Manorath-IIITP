@@ -44,6 +44,7 @@ export async function createTransaction(
     currency?: string;
     isRecurring?: boolean;
     recurringFrequency?: RecurringFrequency;
+    receiptUrl?: string;
   },
 ) {
   if (data.categoryId) {
@@ -79,6 +80,7 @@ export async function updateTransaction(
     currency: string;
     isRecurring: boolean;
     recurringFrequency: RecurringFrequency;
+    receiptUrl: string;
   }>,
 ) {
   const transaction = await prisma.transaction.findFirst({

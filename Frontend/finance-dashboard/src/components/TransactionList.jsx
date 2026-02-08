@@ -91,6 +91,61 @@ export default function TransactionList({ transactions, onUpdate }) {
                           </span>
                         </div>
                       )}
+                      {transaction.receiptUrl && (
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              const response = await fetch(
+                                transaction.receiptUrl,
+                              );
+                              if (!response.ok)
+                                throw new Error("Download failed");
+                              const blob = await response.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement("a");
+                              a.href = url;
+                              // Extract filename from URL or use default
+                              const filename =
+                                transaction.receiptUrl.split("/").pop() ||
+                                "receipt.pdf";
+                              a.download = filename;
+                              document.body.appendChild(a);
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                              document.body.removeChild(a);
+                            } catch (err) {
+                              console.error("Download error:", err);
+                              alert(
+                                "Could not download file. Opening in new tab instead.",
+                              );
+                              window.open(transaction.receiptUrl, "_blank");
+                            }
+                          }}
+                          className="flex items-center gap-1 hover:opacity-80 transition-opacity"
+                          title="Download Receipt"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="text-[var(--accent-cyan)] w-3 h-3"
+                          >
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <path d="M7 10l5 5 5-5"></path>
+                            <path d="M12 15V3"></path>
+                          </svg>
+                          <span className="text-xs text-[var(--accent-cyan)] underline">
+                            Receipt
+                          </span>
+                        </button>
+                      )}
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3 text-[var(--text-muted)]" />
                         <span className="text-xs text-[var(--text-muted)] mono">
@@ -115,7 +170,7 @@ export default function TransactionList({ transactions, onUpdate }) {
                       }}
                     >
                       {isIncome ? "+" : ""}
-                      {formatCurrency(amount)}
+                      {formatCurrency(amount, transaction.currency || "USD")}
                     </p>
                     {isNegative && (
                       <span className="text-xs text-[var(--accent-yellow)]">

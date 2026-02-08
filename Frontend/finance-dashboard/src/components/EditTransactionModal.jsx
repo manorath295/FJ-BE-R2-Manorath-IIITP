@@ -46,23 +46,30 @@ export default function EditTransactionModal({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+    setLoading(true);
 
     try {
-      const payload = {
-        ...formData,
-        amount: parseFloat(formData.amount),
-        date: new Date(formData.date).toISOString(),
-        categoryId: formData.categoryId || undefined,
-      };
+      const formDataInstance = new FormData();
+      formDataInstance.append("amount", parseFloat(formData.amount));
+      formDataInstance.append("currency", formData.currency);
+      formDataInstance.append("type", formData.type);
+      if (formData.categoryId) {
+        formDataInstance.append("categoryId", formData.categoryId);
+      }
+      formDataInstance.append("description", formData.description);
+      formDataInstance.append("date", new Date(formData.date).toISOString());
 
-      await transactionsAPI.update(transaction.id, payload);
+      if (formData.receipt) {
+        formDataInstance.append("receipt", formData.receipt);
+      }
+
+      await transactionsAPI.update(transaction.id, formDataInstance);
       onSuccess();
       onClose();
     } catch (err) {
       console.error("Error updating transaction:", err);
-      setError(err.response?.data?.message || "Failed to update transaction");
+      setError(err.response?.data?.error || "Failed to update transaction");
     } finally {
       setLoading(false);
     }
@@ -98,63 +105,85 @@ export default function EditTransactionModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Type */}
-          <div>
-            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
-              Type
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() =>
-                  setFormData({ ...formData, type: "INCOME", categoryId: "" })
+          {/* Amount Row */}
+          <div className="flex gap-4">
+            {/* Currency */}
+            <div className="w-24">
+              <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
+                Curr
+              </label>
+              <select
+                value={formData.currency}
+                onChange={(e) =>
+                  setFormData({ ...formData, currency: e.target.value })
                 }
-                className={`py-2 px-4 rounded font-bold uppercase tracking-wider transition-all ${
-                  formData.type === "INCOME"
-                    ? "bg-[var(--success)] text-[var(--bg-primary)]"
-                    : "bg-[var(--bg-tertiary)] border border-[var(--border-primary)] text-[var(--text-secondary)]"
-                }`}
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-2 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none"
               >
-                Income
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFormData({ ...formData, type: "EXPENSE", categoryId: "" })
-                }
-                className={`py-2 px-4 rounded font-bold uppercase tracking-wider transition-all ${
-                  formData.type === "EXPENSE"
-                    ? "bg-[var(--error)] text-[var(--bg-primary)]"
-                    : "bg-[var(--bg-tertiary)] border border-[var(--border-primary)] text-[var(--text-secondary)]"
-                }`}
-              >
-                Expense
-              </button>
+                {["USD", "EUR", "GBP", "INR", "JPY", "CAD", "AUD", "CNY"].map(
+                  (c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
+
+            {/* Amount */}
+            <div className="flex-1">
+              <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
+                Amount
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={formData.amount}
+                  onChange={(e) =>
+                    setFormData({ ...formData, amount: e.target.value })
+                  }
+                  className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Type */}
+            <div className="w-1/3">
+              <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
+                Type
+              </label>
+              <div className="py-2 px-4 bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded text-[var(--text-secondary)] font-bold opacity-70 cursor-not-allowed">
+                {formData.type}
+              </div>
             </div>
           </div>
 
-          {/* Amount */}
+          {/* Category */}
           <div>
-            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
-              Amount
+            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
+              Category
             </label>
-            <input
-              type="number"
+            <select
               required
-              step="0.01"
-              min="0"
-              value={formData.amount}
+              value={formData.categoryId}
               onChange={(e) =>
-                setFormData({ ...formData, amount: e.target.value })
+                setFormData({ ...formData, categoryId: e.target.value })
               }
-              className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none mono text-lg"
-              placeholder="0.00"
-            />
+              className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none"
+            >
+              <option value="">Select Category</option>
+              {filteredCategories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
+            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
               Description
             </label>
             <input
@@ -165,34 +194,12 @@ export default function EditTransactionModal({
                 setFormData({ ...formData, description: e.target.value })
               }
               className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none"
-              placeholder="e.g., Monthly salary, Grocery shopping"
             />
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
-              Category (Optional)
-            </label>
-            <select
-              value={formData.categoryId}
-              onChange={(e) =>
-                setFormData({ ...formData, categoryId: e.target.value })
-              }
-              className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none"
-            >
-              <option value="">No Category</option>
-              {filteredCategories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
           </div>
 
           {/* Date */}
           <div>
-            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
+            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
               Date
             </label>
             <input
@@ -206,29 +213,60 @@ export default function EditTransactionModal({
             />
           </div>
 
-          {/* Buttons */}
-          <div className="flex gap-3 pt-4">
+          {/* Receipt Upload */}
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1">
+              Receipt (Optional)
+            </label>
+            {transaction?.receiptUrl && (
+              <div className="mb-2 text-xs text-[var(--text-secondary)]">
+                Current receipt:{" "}
+                <a
+                  href={transaction.receiptUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[var(--accent-cyan)] underline"
+                >
+                  View
+                </a>
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={(e) =>
+                setFormData({ ...formData, receipt: e.target.files[0] })
+              }
+              className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-2 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--accent-cyan)] file:text-[var(--bg-primary)] hover:file:bg-opacity-80"
+            />
+            <p className="text-xs text-[var(--text-secondary)] mt-1">
+              Upload new file to replace existing receipt
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-4 border-t border-[var(--border-primary)]">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-primary)] text-[var(--text-primary)] font-bold py-2 px-4 rounded uppercase tracking-wider hover:border-[var(--text-primary)] transition-colors"
+              className="flex-1 px-4 py-2 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded font-bold uppercase hover:bg-[var(--bg-primary)] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-[var(--accent-cyan)] text-[var(--bg-primary)] font-bold py-2 px-4 rounded uppercase tracking-wider hover:opacity-80 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-[var(--accent-cyan)] text-[var(--bg-primary)] rounded font-bold uppercase hover:opacity-80 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
                   Saving...
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  Save
+                  Save Changes
                 </>
               )}
             </button>
