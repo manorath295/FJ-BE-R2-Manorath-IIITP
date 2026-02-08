@@ -6,6 +6,7 @@ import categoryRoutes from "./routes/category.routes.js";
 import budgetRoutes from "./routes/budget.route.js";
 import transactionRoutes from "./routes/transaction.routes.js";
 import importRoutes from "./routes/import.routes.js";
+import chatbotRoutes from "./routes/chatbot.routes.js";
 import cors from "cors";
 
 const app = express();
@@ -42,6 +43,9 @@ app.use("/api/transactions", transactionRoutes);
 
 // Import routes
 app.use("/api/import", importRoutes);
+
+// Chatbot routes
+app.use("/api/chatbot", chatbotRoutes);
 
 app.get("/api/test", async (req, res) => {
   const session = await auth.api.getSession({

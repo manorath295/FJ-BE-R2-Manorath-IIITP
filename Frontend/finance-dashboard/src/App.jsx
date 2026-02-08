@@ -1,12 +1,17 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useState } from "react";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import Dashboard from "./components/Dashboard";
 import Reports from "./components/Reports";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ChatbotModal from "./components/ChatbotModal";
 import "./index.css";
+import "./App.css";
 
 function App() {
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+
   return (
     <BrowserRouter>
       <Routes>
@@ -36,6 +41,21 @@ function App() {
         {/* Default Route */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
+
+      {/* Floating Chatbot Button */}
+      <button
+        className="chatbot-fab"
+        onClick={() => setIsChatbotOpen(true)}
+        title="Open Financial Assistant"
+      >
+        💬
+      </button>
+
+      {/* Chatbot Modal */}
+      <ChatbotModal
+        isOpen={isChatbotOpen}
+        onClose={() => setIsChatbotOpen(false)}
+      />
     </BrowserRouter>
   );
 }

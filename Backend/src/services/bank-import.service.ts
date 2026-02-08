@@ -3,6 +3,7 @@ import { z } from "zod";
 import { PDFParse } from "pdf-parse";
 import { parse } from "csv-parse/sync";
 import prisma from "../lib/db.js";
+import { createWorker } from "tesseract.js";
 
 // Zod schema for transaction extraction
 const transactionSchema = z.object({
@@ -73,17 +74,16 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
 };
 
 /**
- * Parse PDF buffer and extract text
+ * Parse PDF buffer and extract text (with OCR fallback)
  */
 export async function parsePDF(buffer: Buffer): Promise<string> {
   try {
     console.log("📄 [PDF PARSE] Starting PDF parsing...");
     console.log("📄 [PDF PARSE] Buffer size:", buffer.length, "bytes");
 
-    // Instantiate PDFParse with buffer data
+    // Step 1: Try standard text extraction first
     const parser = new PDFParse({ data: buffer });
     const result = await parser.getText();
-    await parser.destroy(); // Clean up resources
 
     console.log(
       "✅ [PDF PARSE] Successfully extracted text, length:",
@@ -92,9 +92,20 @@ export async function parsePDF(buffer: Buffer): Promise<string> {
     );
     console.log("📄 [PDF PARSE] Preview:", result.text.substring(0, 200));
 
-    // Validate that we actually extracted meaningful text
-    if (!result.text || result.text.trim().length < 50) {
-      console.error("❌ [PDF PARSE] Extracted text is too short or empty!");
+    // Step 2: Check if we got meaningful text
+    if (result.text && result.text.trim().length >= 50) {
+      await parser.destroy();
+      return result.text;
+    }
+
+    // Step 3: Text extraction failed - try OCR
+    console.log("⚠️ [PDF PARSE] Insufficient text extracted, trying OCR...");
+
+    // Get screenshots of PDF pages
+    const screenshots = await parser.getScreenshot();
+    await parser.destroy();
+
+    if (!screenshots || screenshots.pages.length === 0) {
       throw new Error(
         "This PDF appears to be image-based or scanned. " +
           "Please try: 1) Export as text-based PDF from your bank, " +
@@ -103,11 +114,66 @@ export async function parsePDF(buffer: Buffer): Promise<string> {
       );
     }
 
-    return result.text;
+    console.log(
+      "🔍 [OCR] Processing",
+      screenshots.pages.length,
+      "pages with Tesseract...",
+    );
+
+    // Import Tesseract dynamically
+    const worker = await createWorker("eng");
+
+    let ocrText = "";
+    for (let i = 0; i < screenshots.pages.length; i++) {
+      const page = screenshots.pages[i] as any; // pdf-parse types may be incomplete
+      console.log(
+        `🔍 [OCR] Processing page ${i + 1}/${screenshots.pages.length}...`,
+      );
+
+      // Extract image buffer (property name may vary)
+      const imageBuffer = page.buffer || page.content || page.image;
+      if (!imageBuffer) {
+        console.warn(
+          `⚠️ [OCR] No image buffer found for page ${i + 1}, skipping...`,
+        );
+        continue;
+      }
+
+      const base64 = imageBuffer.toString("base64");
+      const dataUrl = `data:image/png;base64,${base64}`;
+
+      const { data } = await worker.recognize(dataUrl);
+      ocrText += data.text + "\n\n";
+      console.log(
+        `✅ [OCR] Page ${i + 1} extracted ${data.text.length} characters`,
+      );
+    }
+
+    await worker.terminate();
+
+    console.log(
+      "✅ [OCR] Total OCR text length:",
+      ocrText.length,
+      "characters",
+    );
+    console.log("📄 [OCR] Preview:", ocrText.substring(0, 200));
+
+    if (!ocrText || ocrText.trim().length < 50) {
+      throw new Error(
+        "OCR failed to extract sufficient text. " +
+          "Please use CSV export from your bank instead.",
+      );
+    }
+
+    return ocrText;
   } catch (error) {
     console.error("❌ [PDF PARSE] Error:", error);
-    if (error instanceof Error && error.message.includes("image-based")) {
-      throw error; // Re-throw our custom error
+    if (
+      error instanceof Error &&
+      (error.message.includes("image-based") ||
+        error.message.includes("OCR failed"))
+    ) {
+      throw error; // Re-throw our custom errors
     }
     throw new Error("Failed to parse PDF file. Please try a CSV file instead.");
   }
