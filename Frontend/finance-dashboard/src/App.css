@@ -3,30 +3,42 @@
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-radius: 50px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
-  font-size: 32px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 999;
   transition: all 0.3s ease;
   animation: pulse 2s infinite;
 }
 
+.chatbot-fab::before {
+  content: "💬";
+  font-size: 24px;
+}
+
+.chatbot-fab::after {
+  content: "AI Assistant";
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
 .chatbot-fab:hover {
-  transform: scale(1.1);
+  transform: scale(1.05) translateY(-2px);
   box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6);
 }
 
 .chatbot-fab:active {
-  transform: scale(0.95);
+  transform: scale(0.98);
 }
 
 @keyframes pulse {
@@ -35,16 +47,26 @@
     box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
   }
   50% {
-    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.6);
+    box-shadow:
+      0 8px 32px rgba(102, 126, 234, 0.6),
+      0 0 0 8px rgba(102, 126, 234, 0.1);
   }
 }
 
 @media (max-width: 640px) {
   .chatbot-fab {
-    width: 56px;
-    height: 56px;
-    bottom: 16px;
+    padding: 14px 20px;
+    bottom: 90px;
     right: 16px;
-    font-size: 28px;
+    font-size: 14px;
+  }
+
+  .chatbot-fab::before {
+    font-size: 20px;
+  }
+
+  .chatbot-fab::after {
+    content: "AI Chat";
+    font-size: 12px;
   }
 }

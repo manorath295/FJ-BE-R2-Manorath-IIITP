@@ -100,7 +100,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[var(--bg-primary)] p-6">
       {/* Header */}
       <header className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h1
               className="text-4xl font-bold mb-2"
@@ -108,7 +108,7 @@ export default function Dashboard() {
             >
               FINANCE TRACKER
             </h1>
-            <p className="text-[var(--text-secondary)] mono">
+            <p className="text-[var(--text-secondary)] mono text-sm">
               Real-time financial overview and analytics
             </p>
           </div>
@@ -127,6 +127,29 @@ export default function Dashboard() {
             >
               Reports
             </a>
+          </div>
+        </div>
+
+        {/* Feature Highlights */}
+        <div className="flex gap-4 items-center text-sm">
+          <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-[var(--border-primary)] px-4 py-2 rounded-lg">
+            <span className="text-[var(--accent-cyan)] text-lg">📊</span>
+            <span className="text-[var(--text-secondary)]">
+              Track Income & Expenses
+            </span>
+          </div>
+          <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-[var(--border-primary)] px-4 py-2 rounded-lg">
+            <span className="text-[var(--accent-green)] text-lg">🎯</span>
+            <span className="text-[var(--text-secondary)]">Manage Budgets</span>
+          </div>
+          <div className="flex items-center gap-2 bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-cyan)] px-4 py-2 rounded-lg relative">
+            <div className="absolute -top-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-[var(--bg-primary)] text-[8px] font-black px-1.5 py-0.5 rounded-full">
+              NEW
+            </div>
+            <span className="text-lg">🤖</span>
+            <span className="text-white font-semibold">
+              AI-Powered Chat & PDF Import
+            </span>
           </div>
         </div>
       </header>
@@ -157,36 +180,68 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Floating Action Buttons */}
-      <div className="fixed bottom-6 right-6 flex flex-col gap-3">
-        <button
-          onClick={() => setShowImportModal(true)}
-          className="bg-[var(--accent-purple)] text-white p-4 rounded-full shadow-lg hover:opacity-80 transition-opacity"
-          title="Import Bank Statement"
-        >
-          <FileUp className="w-6 h-6" />
-        </button>
-        <button
-          onClick={() => setShowTransactionModal(true)}
-          className="bg-[var(--accent-cyan)] text-[var(--bg-primary)] p-4 rounded-full shadow-lg hover:opacity-80 transition-opacity"
-          title="Add Transaction"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
-        <button
-          onClick={() => setShowCategoryModal(true)}
-          className="bg-[var(--accent-purple)] text-white p-4 rounded-full shadow-lg hover:opacity-80 transition-opacity"
-          title="Add Category"
-        >
-          <Tag className="w-6 h-6" />
-        </button>
-        <button
-          onClick={() => setShowBudgetModal(true)}
-          className="bg-[var(--accent-green)] text-[var(--bg-primary)] p-4 rounded-full shadow-lg hover:opacity-80 transition-opacity"
-          title="Add Budget"
-        >
-          <Target className="w-6 h-6" />
-        </button>
+      {/* Action Toolbar - Bottom Center */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
+        <div className="bg-[var(--bg-card)] border-2 border-[var(--border-primary)] rounded-2xl shadow-2xl p-4 flex gap-3">
+          <button
+            onClick={() => setShowTransactionModal(true)}
+            className="flex flex-col items-center gap-1 bg-[var(--accent-cyan)] text-[var(--bg-primary)] px-5 py-3 rounded-xl font-bold hover:opacity-80 transition-all hover:scale-105 min-w-[140px]"
+            title="Record a new income or expense transaction"
+          >
+            <div className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              <span className="text-sm font-extrabold">Add Transaction</span>
+            </div>
+            <span className="text-[10px] opacity-80 font-normal">
+              Record income/expense
+            </span>
+          </button>
+
+          <button
+            onClick={() => setShowCategoryModal(true)}
+            className="flex flex-col items-center gap-1 bg-[var(--accent-purple)] text-white px-5 py-3 rounded-xl font-bold hover:opacity-80 transition-all hover:scale-105 min-w-[140px]"
+            title="Create and manage transaction categories"
+          >
+            <div className="flex items-center gap-2">
+              <Tag className="w-5 h-5" />
+              <span className="text-sm font-extrabold">Category</span>
+            </div>
+            <span className="text-[10px] opacity-80 font-normal">
+              Organize transactions
+            </span>
+          </button>
+
+          <button
+            onClick={() => setShowBudgetModal(true)}
+            className="flex flex-col items-center gap-1 bg-[var(--accent-green)] text-[var(--bg-primary)] px-5 py-3 rounded-xl font-bold hover:opacity-80 transition-all hover:scale-105 min-w-[140px]"
+            title="Set monthly spending limits and track budget usage"
+          >
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              <span className="text-sm font-extrabold">Budget</span>
+            </div>
+            <span className="text-[10px] opacity-80 font-normal">
+              Set spending limits
+            </span>
+          </button>
+
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex flex-col items-center gap-1 bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-cyan)] text-white px-5 py-3 rounded-xl font-bold hover:opacity-80 transition-all hover:scale-105 min-w-[140px] relative"
+            title="AI-powered PDF bank statement import and extraction"
+          >
+            <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-[var(--bg-primary)] text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg">
+              AI-POWERED
+            </div>
+            <div className="flex items-center gap-2">
+              <FileUp className="w-5 h-5" />
+              <span className="text-sm font-extrabold">Import PDF</span>
+            </div>
+            <span className="text-[10px] opacity-90 font-normal">
+              AI extracts transactions
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Modals */}

@@ -95,10 +95,15 @@ export default function ChatbotModal({ isOpen, onClose }) {
         {/* Header */}
         <div className="chatbot-header">
           <div className="chatbot-header-content">
-            <div className="chatbot-icon">💬</div>
+            <div className="chatbot-icon-wrapper">
+              <div className="chatbot-icon">🤖</div>
+              <div className="chatbot-ai-badge">AI</div>
+            </div>
             <div>
-              <h3>Financial Assistant</h3>
-              <p>Ask me about your income and expenses</p>
+              <h3>Financial AI Assistant</h3>
+              <p>
+                Powered by Google Gemini • Ask about income, expenses & budgets
+              </p>
             </div>
           </div>
           <div className="chatbot-header-actions">
@@ -120,20 +125,36 @@ export default function ChatbotModal({ isOpen, onClose }) {
           {messages.length === 0 && (
             <div className="chatbot-welcome">
               <div className="chatbot-welcome-icon">🤖</div>
-              <h4>Welcome! How can I help you today?</h4>
+              <h4>Hi! I'm your AI Financial Assistant</h4>
               <p>
-                Try asking me about your transactions, budgets, or spending
-                patterns.
+                I can help you understand your spending, income, and budgets
+                using natural language.
               </p>
 
+              <div className="chatbot-features">
+                <div className="chatbot-feature-item">
+                  <span className="chatbot-feature-icon">💰</span>
+                  <span>Query transactions by date, category, or amount</span>
+                </div>
+                <div className="chatbot-feature-item">
+                  <span className="chatbot-feature-icon">📊</span>
+                  <span>Get spending summaries and breakdowns</span>
+                </div>
+                <div className="chatbot-feature-item">
+                  <span className="chatbot-feature-icon">🎯</span>
+                  <span>Check budget status and alerts</span>
+                </div>
+              </div>
+
               <div className="chatbot-examples">
-                <p className="chatbot-examples-title">Example questions:</p>
+                <p className="chatbot-examples-title">💡 Try asking me:</p>
                 {EXAMPLE_QUERIES.map((query, index) => (
                   <button
                     key={index}
                     className="chatbot-example-btn"
                     onClick={() => handleExampleClick(query)}
                   >
+                    <span className="chatbot-example-icon">→</span>
                     {query}
                   </button>
                 ))}

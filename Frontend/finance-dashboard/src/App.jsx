@@ -46,10 +46,8 @@ function App() {
       <button
         className="chatbot-fab"
         onClick={() => setIsChatbotOpen(true)}
-        title="Open Financial Assistant"
-      >
-        💬
-      </button>
+        title="Open AI Financial Assistant"
+      ></button>
 
       {/* Chatbot Modal */}
       <ChatbotModal
