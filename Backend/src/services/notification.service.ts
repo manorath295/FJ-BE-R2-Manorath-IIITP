@@ -66,7 +66,7 @@ export async function checkBudgetAfterTransaction(
   });
 
   const totalSpent = transactions.reduce(
-    (sum, t) => sum + parseFloat(t.amount.toString()),
+    (sum: number, t: any) => sum + parseFloat(t.amount.toString()),
     0,
   );
   const budgetAmount = parseFloat(budget.amount.toString());

@@ -189,7 +189,7 @@ const searchTransactionsTool = tool(
 
     return JSON.stringify({
       count: transactions.length,
-      transactions: transactions.map((t) => ({
+      transactions: transactions.map((t: any) => ({
         date: t.date.toISOString().split("T")[0],
         description: t.description,
         amount: Number(t.amount),
@@ -238,21 +238,21 @@ const getSpendingSummaryTool = tool(
 
       // Fetch category names
       const categoryIds = summary
-        .map((s) => s.categoryId)
+        .map((s: any) => s.categoryId)
         .filter(Boolean) as string[];
       const categories = await prisma.category.findMany({
         where: { id: { in: categoryIds } },
         select: { id: true, name: true },
       });
 
-      const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
+      const categoryMap = new Map(categories.map((c: any) => [c.id, c.name]));
 
       return JSON.stringify({
         totalSpending: summary.reduce(
-          (acc, s) => acc + Number(s._sum.amount || 0),
+          (acc: number, s: any) => acc + Number(s._sum.amount || 0),
           0,
         ),
-        breakdown: summary.map((s) => ({
+        breakdown: summary.map((s: any) => ({
           category: s.categoryId
             ? categoryMap.get(s.categoryId) || "Unknown"
             : "Uncategorized",
@@ -315,21 +315,21 @@ const getIncomeSummaryTool = tool(
 
       // Fetch category names
       const categoryIds = summary
-        .map((s) => s.categoryId)
+        .map((s: any) => s.categoryId)
         .filter(Boolean) as string[];
       const categories = await prisma.category.findMany({
         where: { id: { in: categoryIds } },
         select: { id: true, name: true },
       });
 
-      const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
+      const categoryMap = new Map(categories.map((c: any) => [c.id, c.name]));
 
       return JSON.stringify({
         totalIncome: summary.reduce(
-          (acc, s) => acc + Number(s._sum.amount || 0),
+          (acc: number, s: any) => acc + Number(s._sum.amount || 0),
           0,
         ),
-        breakdown: summary.map((s) => ({
+        breakdown: summary.map((s: any) => ({
           category: s.categoryId
             ? categoryMap.get(s.categoryId) || "Unknown"
             : "Uncategorized",
@@ -391,16 +391,16 @@ const getCategoryBreakdownTool = tool(
 
     // Fetch category names
     const categoryIds = summary
-      .map((s) => s.categoryId)
+      .map((s: any) => s.categoryId)
       .filter(Boolean) as string[];
     const categories = await prisma.category.findMany({
       where: { id: { in: categoryIds } },
       select: { id: true, name: true },
     });
 
-    const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
+    const categoryMap = new Map(categories.map((c: any) => [c.id, c.name]));
 
-    const breakdown = summary.map((s) => ({
+    const breakdown = summary.map((s: any) => ({
       category: s.categoryId
         ? categoryMap.get(s.categoryId) || "Unknown"
         : "Uncategorized",
@@ -409,14 +409,14 @@ const getCategoryBreakdownTool = tool(
     }));
 
     // Sort by amount descending
-    breakdown.sort((a, b) => b.amount - a.amount);
+    breakdown.sort((a: any, b: any) => b.amount - a.amount);
 
-    const total = breakdown.reduce((acc, b) => acc + b.amount, 0);
+    const total = breakdown.reduce((acc: number, b: any) => acc + b.amount, 0);
 
     return JSON.stringify({
       type,
       total,
-      breakdown: breakdown.map((b) => ({
+      breakdown: breakdown.map((b: any) => ({
         ...b,
         percentage: total > 0 ? ((b.amount / total) * 100).toFixed(1) : "0.0",
       })),
@@ -468,7 +468,7 @@ const getBudgetStatusTool = tool(
 
     // Calculate spending for each budget
     const budgetStatus = await Promise.all(
-      budgets.map(async (budget) => {
+      budgets.map(async (budget: any) => {
         const spending = await prisma.transaction.aggregate({
           where: {
             userId,
