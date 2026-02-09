@@ -1,9 +1,9 @@
 import { Router } from "express";
 import multer from "multer";
-import { requireAuth } from "../middleware/auth.middleware";
-import { validate } from "../middleware/validate.middleware";
-import * as importController from "../controllers/import.controller";
-import { confirmImportSchema } from "../validators/import.validator";
+import { requireAuth } from "../middleware/auth.middleware.js";
+import { validate } from "../middleware/validate.middleware.js";
+import * as importController from "../controllers/import.controller.js";
+import { confirmImportSchema } from "../validators/import.validator.js";
 
 const router = Router();
 

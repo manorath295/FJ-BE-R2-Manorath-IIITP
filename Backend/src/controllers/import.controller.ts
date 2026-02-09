@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import * as bankImportService from "../services/bank-import.service";
-import { successResponse } from "../utils/response.util";
+import * as bankImportService from "../services/bank-import.service.js";
+import { successResponse } from "../utils/response.util.js";
 
 /**
  * Preview imported transactions from bank statement
