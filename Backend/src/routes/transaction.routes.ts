@@ -28,4 +28,11 @@ router.put(
 );
 router.delete("/:id", transactionController.deleteTransaction);
 
+// Analyze receipt with AI (no validation schema needed as it's just an analysis)
+router.post(
+  "/analyze",
+  upload.single("receipt"),
+  transactionController.analyzeReceipt,
+);
+
 export { router as default };

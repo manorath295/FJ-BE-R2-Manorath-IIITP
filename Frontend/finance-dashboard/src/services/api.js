@@ -34,6 +34,10 @@ export const transactionsAPI = {
   create: (data) => api.post("/transactions", data),
   update: (id, data) => api.put(`/transactions/${id}`, data),
   delete: (id) => api.delete(`/transactions/${id}`),
+  analyze: (formData) =>
+    api.post("/transactions/analyze", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
 };
 
 // Budgets API

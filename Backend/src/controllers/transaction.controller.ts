@@ -132,3 +132,38 @@ export async function deleteTransaction(req: Request, res: Response) {
   const result = await transactionService.deleteTransaction(id, userId);
   res.json(successResponse(result));
 }
+
+export async function analyzeReceipt(req: Request, res: Response) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "No receipt image uploaded",
+      });
+    }
+
+    // req.file.path is the Cloudinary URL thanks to the middleware
+    const imageUrl = req.file.path;
+    console.log("🔍 [ANALYZE] analyzing receipt:", imageUrl);
+
+    const { analyzeReceipt } = await import("../services/ai.service.js");
+    const analysis = await analyzeReceipt(imageUrl);
+
+    // Return analysis + the uploaded image URL so frontend can display it
+    res.json(
+      successResponse(
+        {
+          ...analysis,
+          receiptUrl: imageUrl,
+        },
+        "Receipt analyzed successfully",
+      ),
+    );
+  } catch (error: any) {
+    console.error("❌ [ANALYZE] Error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Failed to analyze receipt",
+    });
+  }
+}

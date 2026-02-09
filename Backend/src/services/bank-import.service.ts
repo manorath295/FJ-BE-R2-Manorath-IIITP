@@ -3,7 +3,8 @@ import { z } from "zod";
 import { PDFParse } from "pdf-parse";
 import { parse } from "csv-parse/sync";
 import prisma from "../lib/db.js";
-import { createWorker } from "tesseract.js";
+import { analyzeBankStatement } from "./ai.service.js";
+// import { createWorker } from "tesseract.js"; // OCR removed as per user request
 
 // Zod schema for transaction extraction
 const transactionSchema = z.object({
@@ -98,74 +99,11 @@ export async function parsePDF(buffer: Buffer): Promise<string> {
       return result.text;
     }
 
-    // Step 3: Text extraction failed - try OCR
-    console.log("⚠️ [PDF PARSE] Insufficient text extracted, trying OCR...");
-
-    // Get screenshots of PDF pages
-    const screenshots = await parser.getScreenshot();
-    await parser.destroy();
-
-    if (!screenshots || screenshots.pages.length === 0) {
-      throw new Error(
-        "This PDF appears to be image-based or scanned. " +
-          "Please try: 1) Export as text-based PDF from your bank, " +
-          "2) Use CSV export instead, or " +
-          "3) Copy-paste transactions into a CSV file",
-      );
-    }
-
+    // Step 3: Text extraction failed - try AI Vision
     console.log(
-      "🔍 [OCR] Processing",
-      screenshots.pages.length,
-      "pages with Tesseract...",
+      "⚠️ [PDF PARSE] Insufficient text. Falling back to Gemini Vision.",
     );
-
-    // Import Tesseract dynamically
-    const worker = await createWorker("eng");
-
-    let ocrText = "";
-    for (let i = 0; i < screenshots.pages.length; i++) {
-      const page = screenshots.pages[i] as any; // pdf-parse types may be incomplete
-      console.log(
-        `🔍 [OCR] Processing page ${i + 1}/${screenshots.pages.length}...`,
-      );
-
-      // Extract image buffer (property name may vary)
-      const imageBuffer = page.buffer || page.content || page.image;
-      if (!imageBuffer) {
-        console.warn(
-          `⚠️ [OCR] No image buffer found for page ${i + 1}, skipping...`,
-        );
-        continue;
-      }
-
-      const base64 = imageBuffer.toString("base64");
-      const dataUrl = `data:image/png;base64,${base64}`;
-
-      const { data } = await worker.recognize(dataUrl);
-      ocrText += data.text + "\n\n";
-      console.log(
-        `✅ [OCR] Page ${i + 1} extracted ${data.text.length} characters`,
-      );
-    }
-
-    await worker.terminate();
-
-    console.log(
-      "✅ [OCR] Total OCR text length:",
-      ocrText.length,
-      "characters",
-    );
-    console.log("📄 [OCR] Preview:", ocrText.substring(0, 200));
-
-    if (!ocrText || ocrText.trim().length < 50) {
-      throw new Error(
-        "OCR failed to extract sufficient text. " +
-          "Please use CSV export from your bank instead.",
-      );
-    }
-
-    return ocrText;
+    throw new Error("image-based"); // Trigger fallback in processStatement
   } catch (error) {
     console.error("❌ [PDF PARSE] Error:", error);
     if (
@@ -337,28 +275,48 @@ export async function processStatement(
 
   // Step 1: Parse file
   console.log("\n📋 [IMPORT] Step 1: Parsing file...");
-  let text: string;
-  if (fileType === "application/pdf") {
-    text = await parsePDF(buffer);
-  } else if (fileType === "text/csv" || fileType === "application/csv") {
-    text = await parseCSV(buffer);
-  } else {
-    console.error("❌ [IMPORT] Unsupported file type:", fileType);
-    throw new Error("Unsupported file type");
-  }
+  let transactions: any[] = [];
 
-  // Step 2: Extract transactions with AI
-  console.log("\n📋 [IMPORT] Step 2: Extracting transactions with AI...");
-  const rawTransactions = await extractTransactionsWithGemini(text);
+  try {
+    if (fileType === "application/pdf") {
+      try {
+        const text = await parsePDF(buffer);
+        transactions = await extractTransactionsWithGemini(text);
+      } catch (error: any) {
+        if (error.message.includes("image-based")) {
+          // Fallback to AI Vision for scanned PDFs
+          console.log("🤖 [IMPORT] PDF is image-based. Using AI Vision...");
+          transactions = await analyzeBankStatement(buffer, "application/pdf");
+        } else {
+          throw error;
+        }
+      }
+    } else if (fileType === "text/csv" || fileType === "application/csv") {
+      const text = await parseCSV(buffer);
+      transactions = await extractTransactionsWithGemini(text);
+    } else if (fileType.startsWith("image/")) {
+      // Direct image upload (JPEG/PNG)
+      console.log(`🤖 [IMPORT] Processing ${fileType} image with AI Vision...`);
+      transactions = await analyzeBankStatement(buffer, fileType);
+    } else {
+      console.error("❌ [IMPORT] Unsupported file type:", fileType);
+      throw new Error("Unsupported file type");
+    }
+  } catch (err) {
+    console.error("❌ [IMPORT] Extraction failed:", err);
+    throw err;
+  }
 
   // Step 3: Auto-categorize and detect duplicates
   console.log(
     "\n📋 [IMPORT] Step 3: Auto-categorizing and detecting duplicates...",
   );
+
+  // Use 'transactions' instead of 'rawTransactions'
   const processedTransactions = await Promise.all(
-    rawTransactions.map(async (transaction, index) => {
+    transactions.map(async (transaction, index) => {
       console.log(
-        `\n  Processing transaction ${index + 1}/${rawTransactions.length}:`,
+        `\n  Processing transaction ${index + 1}/${transactions.length}:`,
         transaction.description,
       );
       const suggestedCategoryId = await autoCategorize(

@@ -14,11 +14,18 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ["application/pdf", "text/csv", "application/csv"];
+    const allowedTypes = [
+      "application/pdf",
+      "text/csv",
+      "application/csv",
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Invalid file type. Only PDF and CSV files are allowed."));
+      cb(new Error("Invalid file type. Allowed: PDF, CSV, JPEG, PNG, WEBP."));
     }
   },
 });
