@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { transactionsAPI, budgetsAPI } from "../services/api";
+import { signOut } from "../lib/auth-client";
 import { calculateTotal } from "../utils/helpers";
 import FinancialOverview from "./FinancialOverview";
 import IncomeExpenseChart from "./IncomeExpenseChart";
@@ -17,19 +19,23 @@ import {
   Tag,
   Target,
   FileUp,
+  Settings,
+  LogOut,
 } from "lucide-react";
+import SettingsModal from "./SettingsModal";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [budgets, setBudgets] = useState([]);
 
-  // Modal states
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -53,6 +59,15 @@ export default function Dashboard() {
       setError(err.response?.data?.message || "Failed to load dashboard data");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
     }
   };
 
@@ -97,65 +112,103 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] p-6">
-      {/* Header */}
-      <header className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1
-              className="text-4xl font-bold mb-2"
-              style={{ color: "var(--accent-cyan)" }}
-            >
-              FINANCE TRACKER
-            </h1>
-            <p className="text-[var(--text-secondary)] mono text-sm">
-              Real-time financial overview and analytics
-            </p>
-          </div>
-
-          {/* Navigation */}
-          <div className="flex gap-3">
-            <a
-              href="/dashboard"
-              className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded text-sm font-bold uppercase hover:border-[var(--accent-cyan)] transition-colors"
-            >
-              Dashboard
-            </a>
-            <a
-              href="/reports"
-              className="px-4 py-2 bg-[var(--accent-purple)] text-white rounded text-sm font-bold uppercase hover:opacity-80 transition-opacity"
-            >
-              Reports
-            </a>
-          </div>
-        </div>
-
-        {/* Feature Highlights */}
-        <div className="flex gap-4 items-center text-sm">
-          <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-[var(--border-primary)] px-4 py-2 rounded-lg">
-            <span className="text-[var(--accent-cyan)] text-lg">📊</span>
-            <span className="text-[var(--text-secondary)]">
-              Track Income & Expenses
-            </span>
-          </div>
-          <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-[var(--border-primary)] px-4 py-2 rounded-lg">
-            <span className="text-[var(--accent-green)] text-lg">🎯</span>
-            <span className="text-[var(--text-secondary)]">Manage Budgets</span>
-          </div>
-          <div className="flex items-center gap-2 bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-cyan)] px-4 py-2 rounded-lg relative">
-            <div className="absolute -top-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-[var(--bg-primary)] text-[8px] font-black px-1.5 py-0.5 rounded-full">
-              NEW
+    <div className="min-h-screen bg-[var(--bg-primary)]">
+      {/* Sticky Header with Action Toolbar */}
+      <header className="sticky top-0 z-50 bg-[var(--bg-primary)]/95 backdrop-blur-md border-b border-[var(--border-primary)] px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Logo & Title */}
+          <div className="flex items-center gap-6">
+            <div>
+              <h1
+                className="text-2xl font-bold"
+                style={{ color: "var(--accent-cyan)" }}
+              >
+                FINANCE TRACKER
+              </h1>
+              <p className="text-[var(--text-secondary)] text-xs">
+                Real-time financial overview
+              </p>
             </div>
-            <span className="text-lg">🤖</span>
-            <span className="text-white font-semibold">
-              AI-Powered Chat & PDF Import
-            </span>
+
+            {/* Navigation */}
+            <div className="flex gap-2">
+              <a
+                href="/dashboard"
+                className="px-3 py-1.5 bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded text-xs font-bold uppercase hover:border-[var(--accent-cyan)] transition-colors"
+              >
+                Dashboard
+              </a>
+              <a
+                href="/reports"
+                className="px-3 py-1.5 bg-[var(--accent-purple)] text-white rounded text-xs font-bold uppercase hover:opacity-80 transition-opacity"
+              >
+                Reports
+              </a>
+            </div>
+          </div>
+
+          {/* Action Buttons in Header */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowSettingsModal(true)}
+              className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] rounded-lg transition-all"
+              title="Settings"
+            >
+              <Settings size={20} />
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="p-2 text-[var(--text-secondary)] hover:text-[var(--error)] hover:bg-[var(--bg-tertiary)] rounded-lg transition-all"
+              title="Logout"
+            >
+              <LogOut size={20} />
+            </button>
+
+            <button
+              onClick={() => setShowTransactionModal(true)}
+              className="flex items-center gap-2 bg-[var(--accent-cyan)] text-[var(--bg-primary)] px-4 py-2 rounded-lg font-bold text-sm hover:opacity-80 transition-all"
+              title="Record a new income or expense transaction"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden md:inline">Add Transaction</span>
+            </button>
+
+            <button
+              onClick={() => setShowCategoryModal(true)}
+              className="flex items-center gap-2 bg-[var(--accent-purple)] text-white px-4 py-2 rounded-lg font-bold text-sm hover:opacity-80 transition-all"
+              title="Create and manage transaction categories"
+            >
+              <Tag className="w-4 h-4" />
+              <span className="hidden md:inline">Category</span>
+            </button>
+
+            <button
+              onClick={() => setShowBudgetModal(true)}
+              className="flex items-center gap-2 bg-[var(--accent-green)] text-[var(--bg-primary)] px-4 py-2 rounded-lg font-bold text-sm hover:opacity-80 transition-all"
+              title="Set monthly spending limits and track budget usage"
+            >
+              <Target className="w-4 h-4" />
+              <span className="hidden md:inline">Budget</span>
+            </button>
+
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-cyan)] text-white px-4 py-2 rounded-lg font-bold text-sm hover:opacity-80 transition-all relative"
+              title="AI-powered PDF bank statement import and extraction"
+            >
+              <FileUp className="w-4 h-4" />
+              <span className="hidden md:inline">Import PDF</span>
+              <span className="absolute -top-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-[var(--bg-primary)] text-[8px] font-black px-1.5 py-0.5 rounded-full">
+                AI
+              </span>
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Dashboard Grid */}
-      <div className="space-y-6">
+      {/* Main Content with padding */}
+      <main className="p-6 space-y-6">
         {/* Financial Overview */}
         <FinancialOverview
           totalIncome={totalIncome}
@@ -178,95 +231,47 @@ export default function Dashboard() {
           transactions={transactions}
           onUpdate={fetchDashboardData}
         />
-      </div>
-
-      {/* Action Toolbar - Bottom Center */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
-        <div className="bg-[var(--bg-card)] border-2 border-[var(--border-primary)] rounded-2xl shadow-2xl p-4 flex gap-3">
-          <button
-            onClick={() => setShowTransactionModal(true)}
-            className="flex flex-col items-center gap-1 bg-[var(--accent-cyan)] text-[var(--bg-primary)] px-5 py-3 rounded-xl font-bold hover:opacity-80 transition-all hover:scale-105 min-w-[140px]"
-            title="Record a new income or expense transaction"
-          >
-            <div className="flex items-center gap-2">
-              <Plus className="w-5 h-5" />
-              <span className="text-sm font-extrabold">Add Transaction</span>
-            </div>
-            <span className="text-[10px] opacity-80 font-normal">
-              Record income/expense
-            </span>
-          </button>
-
-          <button
-            onClick={() => setShowCategoryModal(true)}
-            className="flex flex-col items-center gap-1 bg-[var(--accent-purple)] text-white px-5 py-3 rounded-xl font-bold hover:opacity-80 transition-all hover:scale-105 min-w-[140px]"
-            title="Create and manage transaction categories"
-          >
-            <div className="flex items-center gap-2">
-              <Tag className="w-5 h-5" />
-              <span className="text-sm font-extrabold">Category</span>
-            </div>
-            <span className="text-[10px] opacity-80 font-normal">
-              Organize transactions
-            </span>
-          </button>
-
-          <button
-            onClick={() => setShowBudgetModal(true)}
-            className="flex flex-col items-center gap-1 bg-[var(--accent-green)] text-[var(--bg-primary)] px-5 py-3 rounded-xl font-bold hover:opacity-80 transition-all hover:scale-105 min-w-[140px]"
-            title="Set monthly spending limits and track budget usage"
-          >
-            <div className="flex items-center gap-2">
-              <Target className="w-5 h-5" />
-              <span className="text-sm font-extrabold">Budget</span>
-            </div>
-            <span className="text-[10px] opacity-80 font-normal">
-              Set spending limits
-            </span>
-          </button>
-
-          <button
-            onClick={() => setShowImportModal(true)}
-            className="flex flex-col items-center gap-1 bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-cyan)] text-white px-5 py-3 rounded-xl font-bold hover:opacity-80 transition-all hover:scale-105 min-w-[140px] relative"
-            title="AI-powered PDF bank statement import and extraction"
-          >
-            <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-[var(--bg-primary)] text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg">
-              AI-POWERED
-            </div>
-            <div className="flex items-center gap-2">
-              <FileUp className="w-5 h-5" />
-              <span className="text-sm font-extrabold">Import PDF</span>
-            </div>
-            <span className="text-[10px] opacity-90 font-normal">
-              AI extracts transactions
-            </span>
-          </button>
-        </div>
-      </div>
+      </main>
 
       {/* Modals */}
-      <BankImportModal
-        isOpen={showImportModal}
-        onClose={() => setShowImportModal(false)}
-        onSuccess={fetchDashboardData}
-      />
-      <AddTransactionModal
-        isOpen={showTransactionModal}
-        onClose={() => setShowTransactionModal(false)}
-        onSuccess={fetchDashboardData}
-      />
+      {showImportModal && (
+        <BankImportModal
+          isOpen={showImportModal}
+          onClose={() => setShowImportModal(false)}
+          onImportSuccess={fetchDashboardData}
+        />
+      )}
 
-      <AddCategoryModal
-        isOpen={showCategoryModal}
-        onClose={() => setShowCategoryModal(false)}
-        onSuccess={fetchDashboardData}
-      />
+      {showTransactionModal && (
+        <AddTransactionModal
+          isOpen={showTransactionModal}
+          onClose={() => setShowTransactionModal(false)}
+          onSuccess={fetchDashboardData}
+        />
+      )}
 
-      <AddBudgetModal
-        isOpen={showBudgetModal}
-        onClose={() => setShowBudgetModal(false)}
-        onSuccess={fetchDashboardData}
-      />
+      {showCategoryModal && (
+        <AddCategoryModal
+          isOpen={showCategoryModal}
+          onClose={() => setShowCategoryModal(false)}
+          onSuccess={fetchDashboardData}
+        />
+      )}
+
+      {showBudgetModal && (
+        <AddBudgetModal
+          isOpen={showBudgetModal}
+          onClose={() => setShowBudgetModal(false)}
+          onSuccess={fetchDashboardData}
+        />
+      )}
+
+      {showSettingsModal && (
+        <SettingsModal
+          isOpen={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+        />
+      )}
     </div>
   );
 }

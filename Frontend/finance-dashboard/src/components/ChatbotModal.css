@@ -73,6 +73,8 @@
     transparent 70%
   );
   border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .chatbot-header-content {
@@ -128,6 +130,8 @@
 .chatbot-header-actions {
   display: flex;
   gap: 8px;
+  position: relative;
+  z-index: 10;
 }
 
 .chatbot-clear-btn,

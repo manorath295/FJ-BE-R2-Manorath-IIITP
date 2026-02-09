@@ -55,4 +55,11 @@ export const importAPI = {
   confirm: (transactions) => api.post("/import/confirm", { transactions }),
 };
 
+// Settings API
+export const settingsAPI = {
+  get: () => api.get("/settings"),
+  updateEmail: (email) => api.patch("/settings/notification-email", { email }),
+  sendTestEmail: (email) => api.post("/settings/test-email", { email }),
+};
+
 export default api;

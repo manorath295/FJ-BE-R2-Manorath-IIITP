@@ -1,72 +1,59 @@
-/* Floating Action Button for Chatbot */
+/* Floating Action Button for Chatbot - Positioned at bottom right */
 .chatbot-fab {
   position: fixed;
   bottom: 24px;
   right: 24px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 24px;
+  gap: 10px;
+  padding: 10px 20px;
   border-radius: 50px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-  z-index: 999;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+  z-index: 9998;
   transition: all 0.3s ease;
-  animation: pulse 2s infinite;
 }
 
 .chatbot-fab::before {
   content: "💬";
-  font-size: 24px;
+  font-size: 18px;
 }
 
 .chatbot-fab::after {
   content: "AI Assistant";
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.5px;
 }
 
 .chatbot-fab:hover {
-  transform: scale(1.05) translateY(-2px);
-  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6);
+  transform: scale(1.05) translateY(-1px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.6);
 }
 
 .chatbot-fab:active {
   transform: scale(0.98);
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-  }
-  50% {
-    box-shadow:
-      0 8px 32px rgba(102, 126, 234, 0.6),
-      0 0 0 8px rgba(102, 126, 234, 0.1);
-  }
-}
-
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .chatbot-fab {
-    padding: 14px 20px;
-    bottom: 90px;
+    padding: 8px 16px;
+    bottom: 20px;
     right: 16px;
-    font-size: 14px;
+    font-size: 12px;
   }
 
   .chatbot-fab::before {
-    font-size: 20px;
+    font-size: 16px;
   }
 
   .chatbot-fab::after {
-    content: "AI Chat";
-    font-size: 12px;
+    content: "AI";
+    font-size: 11px;
   }
 }

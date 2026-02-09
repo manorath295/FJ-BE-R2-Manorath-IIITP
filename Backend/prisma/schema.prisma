@@ -26,12 +26,13 @@ model User {
   accounts      Account[]
 
   // Finance Tracker Fields & Relations
-  defaultCurrency String         @default("USD")
-  categories      Category[]
-  transactions    Transaction[]
-  budgets         Budget[]
-  receipts        Receipt[]
-  notifications   Notification[]
+  defaultCurrency   String         @default("USD")
+  notificationEmail String?        // Custom email for notifications (if null, uses account email)
+  categories        Category[]
+  transactions      Transaction[]
+  budgets           Budget[]
+  receipts          Receipt[]
+  notifications     Notification[]
 
   @@unique([email])
   @@map("user")

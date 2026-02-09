@@ -14,8 +14,9 @@ export const createTransactionSchema = z.object({
     (a) => parseFloat(a as string),
     z
       .number()
+      .positive("Amount must be positive")
       .multipleOf(0.01, "Amount must have at most 2 decimal places")
-      .min(-9999999999.99, "Amount too small")
+      .min(0.01, "Amount must be at least 0.01")
       .max(9999999999.99, "Amount too large"),
   ),
   type: TransactionTypeEnum,
@@ -36,22 +37,43 @@ export const createTransactionSchema = z.object({
 });
 
 export const updateTransactionSchema = z.object({
-  categoryId: z.string().uuid("Invalid category ID").optional(),
-  amount: z
-    .number()
-    .multipleOf(0.01, "Amount must have at most 2 decimal places")
-    .min(-9999999999.99, "Amount too small")
-    .max(9999999999.99, "Amount too large")
-    .optional(),
+  categoryId: z.preprocess(
+    (val) => (val === "" || val === null ? undefined : val),
+    z.string().uuid("Invalid category ID").optional(),
+  ),
+  amount: z.preprocess(
+    (a) => (a ? parseFloat(a as string) : undefined),
+    z
+      .number()
+      .positive("Amount must be positive")
+      .multipleOf(0.01, "Amount must have at most 2 decimal places")
+      .min(0.01, "Amount must be at least 0.01")
+      .max(9999999999.99, "Amount too large")
+      .optional(),
+  ),
   type: TransactionTypeEnum.optional(),
   description: z
     .string()
     .min(1, "Description is required")
     .max(500, "Description too long")
     .optional(),
-  date: z.string().datetime("Invalid date format").optional(),
-  currency: z.string().length(3, "Currency must be 3 characters").optional(),
-  isRecurring: z.boolean().optional(),
+  date: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().datetime("Invalid date format").optional(),
+  ),
+  currency: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().length(3, "Currency must be 3 characters").optional(),
+  ),
+  isRecurring: z.preprocess(
+    (val) =>
+      val === "true" || val === true
+        ? true
+        : val === "false" || val === false
+          ? false
+          : undefined,
+    z.boolean().optional(),
+  ),
   recurringFrequency: RecurringFrequencyEnum.optional(),
 });
 

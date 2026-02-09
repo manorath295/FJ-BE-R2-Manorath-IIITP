@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as transactionService from "../services/transaction.service.js";
 import { successResponse } from "../utils/response.util.js";
+import { checkBudgetAfterTransaction } from "../services/notification.service.js";
 
 export async function getTransactions(req: Request, res: Response) {
   const userId = req.userId!;
@@ -40,14 +41,14 @@ export async function createTransaction(req: Request, res: Response) {
   console.log("Create Transaction Request Received");
   console.log("File:", req.file);
   console.log("Body:", req.body);
-  console.log("Currency:", currency);
 
-  const receiptUrl = req.file ? req.file.path : undefined;
+  let receiptUrl: string | undefined;
 
-  if (receiptUrl) {
-    console.log("✅ File uploaded to Cloudinary successfully:", receiptUrl);
-  } else {
-    console.log("⚠️ No file uploaded with this transaction.");
+  // With CloudinaryStorage middleware, req.file.path IS the Cloudinary URL
+  if (req.file) {
+    receiptUrl = req.file.path;
+    console.log("✅ File uploaded to Cloudinary via middleware!");
+    console.log("🔗 Cloudinary URL:", receiptUrl);
   }
 
   // Zod middleware (validate.middleware) already validated and sanitized Types
@@ -63,6 +64,14 @@ export async function createTransaction(req: Request, res: Response) {
     recurringFrequency,
     receiptUrl,
   });
+
+  // Check budget alerts for expense transactions with a category
+  if (type === "EXPENSE" && categoryId) {
+    // Run budget check in background (don't await to avoid slowing down response)
+    checkBudgetAfterTransaction(userId, categoryId).catch((err) => {
+      console.error("Budget check failed:", err);
+    });
+  }
 
   res.status(201).json(successResponse(transaction, "Transaction created"));
 }
@@ -81,6 +90,19 @@ export async function updateTransaction(req: Request, res: Response) {
     recurringFrequency,
   } = req.body;
 
+  console.log("Update Transaction Request Received");
+  console.log("File:", req.file);
+  console.log("Transaction ID:", id);
+
+  let receiptUrl: string | undefined;
+
+  // With CloudinaryStorage middleware, req.file.path IS the Cloudinary URL
+  if (req.file) {
+    receiptUrl = req.file.path;
+    console.log("✅ File uploaded to Cloudinary via middleware!");
+    console.log("🔗 Cloudinary URL:", receiptUrl);
+  }
+
   const transaction = await transactionService.updateTransaction(id, userId, {
     categoryId,
     amount,
@@ -90,7 +112,15 @@ export async function updateTransaction(req: Request, res: Response) {
     currency,
     isRecurring,
     recurringFrequency,
+    receiptUrl,
   });
+
+  // Check budget alerts if it's an expense and has a category
+  if (transaction.type === "EXPENSE" && transaction.categoryId) {
+    checkBudgetAfterTransaction(userId, transaction.categoryId).catch((err) => {
+      console.error("Budget check failed:", err);
+    });
+  }
 
   res.json(successResponse(transaction, "Transaction updated"));
 }
