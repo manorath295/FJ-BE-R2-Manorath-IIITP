@@ -1,9 +1,11 @@
 import axios from "axios";
 
 // Use environment variable for API URL, fallback to localhost:3000 for development
-// We add /api here because all our API routes are under /api
+// For production (EC2), use the current origin
 const API_BASE_URL =
-  (import.meta.env.VITE_API_URL || "http://localhost:3000") + "/api";
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000/api"
+    : window.location.origin + "/api";
 
 // Create axios instance with default config
 
