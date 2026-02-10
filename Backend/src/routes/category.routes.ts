@@ -8,21 +8,15 @@ import {
 } from "../validators/category.validator.js";
 
 const router = Router();
-
-// All routes require authentication
 router.use(requireAuth);
-
-// GET /api/categories - Get all categories
 router.get("/", categoryController.getCategories);
 
-// POST /api/categories - Create category (with validation)
 router.post(
   "/",
   validate(createCategorySchema),
   categoryController.createCategory,
 );
 
-// PUT /api/categories/:id - Update category (with validation)
 router.put(
   "/:id",
   validate(updateCategorySchema),

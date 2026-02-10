@@ -74,13 +74,6 @@ const budgetStatusSchema = z.object({
     ),
 });
 
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-/**
- * Parse natural language date references to actual dates
- */
 function parseDateRange(
   dateFrom?: string,
   dateTo?: string,
@@ -519,9 +512,8 @@ const getBudgetStatusTool = tool(
   },
 );
 
-// ============================================================================
+
 // CHATBOT AGENT
-// ============================================================================
 
 const tools = [
   searchTransactionsTool,

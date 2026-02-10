@@ -7,10 +7,6 @@ import {
 } from "../services/notification.service.js";
 import { successResponse, errorResponse } from "../utils/response.util.js";
 
-/**
- * Get all notifications for the authenticated user
- * GET /api/notifications
- */
 export async function getNotifications(req: Request, res: Response) {
   const userId = req.userId!;
   const { unreadOnly, limit } = req.query;
@@ -25,10 +21,6 @@ export async function getNotifications(req: Request, res: Response) {
   );
 }
 
-/**
- * Get unread notification count
- * GET /api/notifications/unread-count
- */
 export async function getUnreadNotificationCount(req: Request, res: Response) {
   const userId = req.userId!;
   const count = await getUnreadCount(userId);
@@ -36,10 +28,6 @@ export async function getUnreadNotificationCount(req: Request, res: Response) {
   res.json(successResponse({ count }, "Unread count fetched"));
 }
 
-/**
- * Mark a specific notification as read
- * PATCH /api/notifications/:id/read
- */
 export async function markAsRead(req: Request, res: Response) {
   const userId = req.userId!;
   const { id } = req.params as { id: string };
@@ -53,10 +41,6 @@ export async function markAsRead(req: Request, res: Response) {
   res.json(successResponse(null, "Notification marked as read"));
 }
 
-/**
- * Mark all notifications as read
- * PATCH /api/notifications/read-all
- */
 export async function markAllAsRead(req: Request, res: Response) {
   const userId = req.userId!;
   const count = await markAllNotificationsAsRead(userId);

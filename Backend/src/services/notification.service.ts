@@ -5,7 +5,7 @@ import {
   isEmailConfigured,
 } from "../utils/email.util.js";
 
-// Define notification types as string literals matching Prisma enum
+
 type NotificationType =
   | "BUDGET_ALERT"
   | "BUDGET_EXCEEDED"

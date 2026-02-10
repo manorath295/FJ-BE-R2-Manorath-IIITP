@@ -6,8 +6,6 @@ import * as importController from "../controllers/import.controller.js";
 import { confirmImportSchema } from "../validators/import.validator.js";
 
 const router = Router();
-
-// Configure multer for memory storage (we'll process the buffer)
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -38,7 +36,6 @@ router.post(
   importController.previewImport,
 );
 
-// Confirm and save transactions
 router.post(
   "/confirm",
   requireAuth,

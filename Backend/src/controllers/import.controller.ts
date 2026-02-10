@@ -2,10 +2,7 @@ import { Request, Response } from "express";
 import * as bankImportService from "../services/bank-import.service.js";
 import { successResponse } from "../utils/response.util.js";
 
-/**
- * Preview imported transactions from bank statement
- * POST /api/import/preview
- */
+
 export async function previewImport(req: Request, res: Response) {
   try {
     const userId = req.userId!;
