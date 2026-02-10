@@ -391,6 +391,7 @@
   resize: none;
   max-height: 120px;
   transition: border-color 0.2s;
+  color: #1f2937; /* Dark gray text for better visibility */
 }
 
 .chatbot-input:focus {
