@@ -4,7 +4,7 @@ import { HumanMessage } from "@langchain/core/messages";
 // Initialize Gemini model
 const model = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-flash",
-  maxOutputTokens: 2048,
+  maxOutputTokens: 8192, // Increased to handle large statements
   apiKey: process.env.GOOGLE_API_KEY,
 });
 
@@ -61,7 +61,7 @@ export async function analyzeReceipt(imageUrl: string) {
 
     return JSON.parse(cleanedResponse);
   } catch (error) {
-    console.error("❌ [AI] Receipt Analysis Error:", error);
+    console.error("[AI] Receipt Analysis Error:", error);
     throw new Error("Failed to analyze receipt image");
   }
 }
@@ -111,19 +111,87 @@ export async function analyzeBankStatement(
     const result = await model.invoke([message]);
     const responseText = result.content as string;
 
-    // Clean up response
-    const cleanedResponse = responseText
+    // Clean up response - multiple strategies
+    let cleanedResponse = responseText
       .replace(/```json/g, "")
       .replace(/```/g, "")
       .trim();
 
+    // Try to extract JSON if embedded in text
+    const jsonMatch = cleanedResponse.match(/\{[\s\S]*"transactions"[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedResponse = jsonMatch[0];
+    }
+
     console.log(
-      "✅ [AI] Statement Analysis complete:",
-      cleanedResponse.substring(0, 200) + "...",
+      "🧹 [AI] Cleaned (first 500):",
+      cleanedResponse.substring(0, 500),
     );
 
-    const parsed = JSON.parse(cleanedResponse);
-    return parsed.transactions || [];
+    try {
+      const parsed = JSON.parse(cleanedResponse);
+      console.log(
+        "✅ [AI] Parsed",
+        parsed.transactions?.length || 0,
+        "transactions",
+      );
+      return parsed.transactions || [];
+    } catch (parseError: any) {
+      console.error("❌ [AI] Parse Error:", parseError.message);
+      console.error(
+        "🔍 [AI] Failed JSON (first 1000):",
+        cleanedResponse.substring(0, 1000),
+      );
+
+      // Try fixing common JSON issues
+      try {
+        let fixed = cleanedResponse
+          .replace(/,(\s*[}\]])/g, "$1")
+          .replace(/'/g, '"')
+          .replace(/\n/g, " ")
+          .replace(/\r/g, "")
+          .replace(/\t/g, " ");
+
+        // Check if JSON is truncated (missing closing brackets)
+        const openBraces = (fixed.match(/\{/g) || []).length;
+        const closeBraces = (fixed.match(/\}/g) || []).length;
+        const openBrackets = (fixed.match(/\[/g) || []).length;
+        const closeBrackets = (fixed.match(/\]/g) || []).length;
+
+        console.log("🔧 [AI] Brackets:", {
+          openBraces,
+          closeBraces,
+          openBrackets,
+          closeBrackets,
+        });
+
+        // Auto-complete truncated JSON
+        if (openBrackets > closeBrackets) {
+          fixed += "]".repeat(openBrackets - closeBrackets);
+          console.log(
+            "🔧 [AI] Added",
+            openBrackets - closeBrackets,
+            "missing ]",
+          );
+        }
+        if (openBraces > closeBraces) {
+          fixed += "}".repeat(openBraces - closeBraces);
+          console.log("🔧 [AI] Added", openBraces - closeBraces, "missing }");
+        }
+
+        console.log("🔧 [AI] Fixed JSON (first 500):", fixed.substring(0, 500));
+
+        const parsed = JSON.parse(fixed);
+        console.log(
+          "✅ [AI] Repaired JSON! Found",
+          parsed.transactions?.length || 0,
+          "transactions",
+        );
+        return parsed.transactions || [];
+      } catch (fixError) {
+        throw new Error(`Invalid JSON from AI: ${parseError.message}`);
+      }
+    }
   } catch (error) {
     console.error("❌ [AI] Statement Analysis Error:", error);
     throw new Error("Failed to analyze bank statement");

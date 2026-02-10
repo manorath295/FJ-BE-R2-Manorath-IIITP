@@ -19,17 +19,40 @@ export default function Signup() {
     setError("");
 
     try {
-      await signUp.email({
+      const result = await signUp.email({
         name: formData.name,
         email: formData.email,
         password: formData.password,
       });
 
-      // Navigate to dashboard after successful signup
-      navigate("/dashboard");
+      console.log("Signup result:", result);
+
+      // Check if there's an error in the result
+      if (result?.error) {
+        setError(result.error.message || "Failed to create account");
+        setLoading(false);
+        return;
+      }
+
+      // If we have user data, signup was successful
+      if (result?.data?.user) {
+        console.log("Signup successful! Redirecting to dashboard...");
+        navigate("/dashboard");
+      } else {
+        setError("Signup failed. Please try again.");
+        setLoading(false);
+      }
     } catch (err) {
       console.error("Signup error:", err);
-      setError(err.message || "Failed to create account");
+      console.error("Error response:", err.response?.data);
+
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Failed to create account. This email may already be registered.";
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

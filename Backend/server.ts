@@ -3,7 +3,7 @@ import express from "express";
 import { toNodeHandler } from "better-auth/node";
 import {auth} from "./src/lib/auth.js"
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());

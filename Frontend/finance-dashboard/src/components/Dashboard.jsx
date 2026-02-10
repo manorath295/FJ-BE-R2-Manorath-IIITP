@@ -238,7 +238,7 @@ export default function Dashboard() {
         <BankImportModal
           isOpen={showImportModal}
           onClose={() => setShowImportModal(false)}
-          onImportSuccess={fetchDashboardData}
+          onSuccess={fetchDashboardData}
         />
       )}
 

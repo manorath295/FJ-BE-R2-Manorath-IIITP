@@ -12,7 +12,7 @@ import settingsRoutes from "./routes/settings.routes.js";
 import cors from "cors";
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 app.use(
   cors({
@@ -32,6 +32,8 @@ app.get("/health", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+
 app.use("/api/auth", toNodeHandler(auth));
 
 // Category routes

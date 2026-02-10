@@ -32,14 +32,30 @@ export default function SettingsModal({ isOpen, onClose }) {
   const fetchSettings = async () => {
     try {
       setLoading(true);
+      console.log("Fetching settings...");
       const response = await settingsAPI.get();
-      const data = response.data.data;
-      setEmail(data.notificationEmail || "");
-      setOriginalEmail(data.notificationEmail || "");
+      console.log("Settings response:", response);
+
+      // The data is in response.data, not response.data.data
+      const data = response.data?.data || response.data;
+      console.log("Parsed data:", data);
+
+      if (data && data.notificationEmail !== undefined) {
+        setEmail(data.notificationEmail || data.email || "");
+        setOriginalEmail(data.notificationEmail || data.email || "");
+        console.log("Settings loaded successfully");
+      } else {
+        throw new Error("Invalid response format");
+      }
     } catch (error) {
+      console.error("Settings fetch error:", error);
+      console.error("Error response:", error.response);
       setMessage({
         type: "error",
-        text: "Failed to load settings. Please try again.",
+        text:
+          error.response?.status === 401
+            ? "Please log in again to access settings."
+            : "Failed to load settings. Please try again.",
       });
     } finally {
       setLoading(false);

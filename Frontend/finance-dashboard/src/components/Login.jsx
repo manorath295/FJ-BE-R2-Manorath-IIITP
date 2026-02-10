@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { signIn } from "../lib/auth-client";
-import { LogIn, Mail, Lock, AlertCircle, Loader2 } from "lucide-react";
+import {
+  LogIn,
+  Mail,
+  Lock,
+  AlertCircle,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,14 +25,39 @@ export default function Login() {
     setError("");
 
     try {
-      await signIn.email({
+      const result = await signIn.email({
         email: formData.email,
         password: formData.password,
       });
-      navigate("/dashboard");
+
+      console.log("Login result:", result);
+
+      // Check if there's an error in the result
+      if (result?.error) {
+        setError(result.error.message || "Invalid email or password");
+        setLoading(false);
+        return;
+      }
+
+      // If we have user data, login was successful
+      if (result?.data?.user) {
+        console.log("Login successful! Redirecting to dashboard...");
+        navigate("/dashboard");
+      } else {
+        setError("Login failed. Please try again.");
+        setLoading(false);
+      }
     } catch (err) {
       console.error("Login error:", err);
-      setError(err.message || "Invalid email or password");
+      console.error("Error response:", err.response?.data);
+
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Invalid email or password. Please check your credentials or sign up first.";
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -35,7 +67,7 @@ export default function Login() {
     try {
       await signIn.social({
         provider: "google",
-        callbackURL: "http://localhost:5173/dashboard",
+        callbackURL: window.location.origin + "/dashboard",
       });
     } catch (err) {
       console.error("Google login error:", err);
@@ -44,32 +76,42 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-[var(--accent-cyan)] opacity-10 rounded-full blur-3xl animate-pulse-glow"></div>
+        <div
+          className="absolute bottom-20 right-10 w-96 h-96 bg-[var(--accent-pink)] opacity-10 rounded-full blur-3xl animate-pulse-glow"
+          style={{ animationDelay: "1s" }}
+        ></div>
+      </div>
+
+      <div className="w-full max-w-md relative z-20 animate-slide-up">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1
-            className="text-4xl font-bold mb-2"
-            style={{ color: "var(--accent-cyan)" }}
-          >
-            FINANCE TRACKER
-          </h1>
-          <p className="text-[var(--text-secondary)] mono">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Sparkles className="w-8 h-8 text-[var(--accent-cyan)]" />
+            <h1 className="text-5xl font-bold gradient-text">
+              FINANCE TRACKER
+            </h1>
+            <Sparkles className="w-8 h-8 text-[var(--accent-pink)]" />
+          </div>
+          <p className="text-[var(--text-secondary)] text-lg">
             Sign in to your account
           </p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-[var(--bg-card)] border-2 border-[var(--border-primary)] p-8 rounded-lg">
-          <div className="flex items-center gap-2 mb-6">
-            <LogIn className="w-6 h-6 text-[var(--accent-cyan)]" />
-            <h2 className="text-xl font-bold uppercase tracking-wider">
-              Login
-            </h2>
+        <div className="glass-strong p-8 rounded-2xl shadow-2xl border border-[var(--border-primary)] card-hover">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-gradient-to-br from-[var(--accent-cyan)] to-[var(--accent-purple)] rounded-lg">
+              <LogIn className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold">Login</h2>
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-[var(--error)] p-4 rounded mb-6 flex items-start gap-2">
+            <div className="bg-red-500/10 border border-[var(--error)] p-4 rounded-lg mb-6 flex items-start gap-3 animate-slide-right">
               <AlertCircle className="w-5 h-5 text-[var(--error)] flex-shrink-0 mt-0.5" />
               <p className="text-sm text-[var(--error)]">{error}</p>
             </div>
@@ -79,7 +121,7 @@ export default function Login() {
           <button
             onClick={handleGoogleLogin}
             type="button"
-            className="w-full bg-white text-gray-700 font-bold py-3 px-4 rounded mb-6 border border-gray-300 hover:bg-gray-50 transition-colors flex items-center justify-center gap-3 shadow-sm"
+            className="w-full bg-white text-gray-700 font-semibold py-3.5 px-4 rounded-xl mb-6 border-2 border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-3 transform hover:scale-[1.02]"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -107,20 +149,20 @@ export default function Login() {
               <div className="w-full border-t border-[var(--border-primary)]"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-[var(--bg-card)] text-[var(--text-secondary)]">
+              <span className="px-4 glass text-[var(--text-secondary)] rounded-full">
                 Or continue with email
               </span>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
-            <div>
-              <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
-                Email
+            <div className="group">
+              <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
+                Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] group-focus-within:text-[var(--accent-cyan)] transition-colors" />
                 <input
                   type="email"
                   required
@@ -128,19 +170,19 @@ export default function Login() {
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-3 pl-12 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none transition-colors"
+                  className="w-full bg-[var(--bg-tertiary)] border-2 border-[var(--border-primary)] rounded-xl px-4 py-3.5 pl-12 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent-cyan)] focus:outline-none transition-all duration-200"
                   placeholder="your@email.com"
                 />
               </div>
             </div>
 
             {/* Password */}
-            <div>
-              <label className="block text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
+            <div className="group">
+              <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] group-focus-within:text-[var(--accent-cyan)] transition-colors" />
                 <input
                   type="password"
                   required
@@ -148,7 +190,7 @@ export default function Login() {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-primary)] rounded px-4 py-3 pl-12 text-[var(--text-primary)] focus:border-[var(--accent-cyan)] focus:outline-none transition-colors"
+                  className="w-full bg-[var(--bg-tertiary)] border-2 border-[var(--border-primary)] rounded-xl px-4 py-3.5 pl-12 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent-cyan)] focus:outline-none transition-all duration-200"
                   placeholder="••••••••"
                 />
               </div>
@@ -158,7 +200,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[var(--accent-cyan)] text-[var(--bg-primary)] font-bold py-3 px-4 rounded uppercase tracking-wider hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full btn-gradient text-white font-bold py-4 px-4 rounded-xl uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
             >
               {loading ? (
                 <>
@@ -173,17 +215,22 @@ export default function Login() {
 
           {/* Sign Up Link */}
           <div className="mt-6 text-center">
-            <p className="text-[var(--text-secondary)] text-sm">
+            <p className="text-[var(--text-secondary)]">
               Don't have an account?{" "}
               <Link
                 to="/signup"
-                className="text-[var(--accent-cyan)] hover:underline font-bold"
+                className="gradient-text font-bold hover:opacity-80 transition-opacity"
               >
                 Sign Up
               </Link>
             </p>
           </div>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-[var(--text-muted)] text-sm mt-6">
+          Secure login powered by better-auth
+        </p>
       </div>
     </div>
   );

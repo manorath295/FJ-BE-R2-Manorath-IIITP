@@ -14,11 +14,12 @@ import EditTransactionModal from "./EditTransactionModal";
 export default function TransactionList({ transactions, onUpdate }) {
   const [deleting, setDeleting] = useState(null);
   const [editingTransaction, setEditingTransaction] = useState(null);
+  const [showAll, setShowAll] = useState(false);
 
-  // Sort by date (newest first) and limit to 10
+  // Sort by date (newest first) and optionally limit to 10
   const recentTransactions = [...transactions]
     .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 10);
+    .slice(0, showAll ? transactions.length : 10);
 
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this transaction?")) return;
@@ -50,9 +51,19 @@ export default function TransactionList({ transactions, onUpdate }) {
 
   return (
     <div className="bg-[var(--bg-card)] border-2 border-[var(--border-primary)] p-6 rounded-lg card-hover">
-      <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-4">
-        Recent Transactions
-      </h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+          Recent Transactions ({transactions.length} total)
+        </h2>
+        {transactions.length > 5 && (
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="px-4 py-2 text-sm font-bold uppercase text-[var(--accent-cyan)] hover:text-[var(--accent-purple)] bg-[var(--accent-cyan)]/10 hover:bg-[var(--accent-cyan)]/20 rounded-lg transition-all"
+          >
+            {showAll ? "Show Less" : `View All (${transactions.length})`}
+          </button>
+        )}
+      </div>
 
       <div className="space-y-2">
         {recentTransactions.map((transaction) => {

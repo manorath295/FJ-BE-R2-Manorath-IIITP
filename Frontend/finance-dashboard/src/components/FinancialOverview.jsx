@@ -4,6 +4,8 @@ import {
   DollarSign,
   Wallet,
   PiggyBank,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 import { formatCurrency } from "../utils/helpers";
 
@@ -16,42 +18,71 @@ export default function FinancialOverview({
   const isPositive = balance >= 0;
 
   return (
-    <div className="bg-[var(--bg-card)] border-2 border-[var(--border-primary)] p-6 rounded-lg card-hover">
+    <div className="glass-strong p-8 rounded-2xl border border-[var(--border-primary)] card-hover shadow-xl">
       {/* Main Balance */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <Wallet className="w-5 h-5 text-[var(--accent-cyan)]" />
-          <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="p-2.5 bg-gradient-to-br from-[var(--accent-cyan)] to-[var(--accent-purple)] rounded-xl">
+            <Wallet className="w-6 h-6 text-white" />
+          </div>
+          <h2 className="text-lg font-bold text-[var(--text-secondary)]">
             Total Balance
           </h2>
         </div>
-        <div className="flex items-baseline gap-3">
+        <div className="flex items-baseline gap-4 mb-2">
           <h1
-            className="text-5xl font-bold mono animate-count"
+            className="text-6xl font-bold mono animate-count"
             style={{
               color: isPositive ? "var(--accent-cyan)" : "var(--accent-pink)",
             }}
           >
             {formatCurrency(balance)}
           </h1>
-          {isPositive ? (
-            <TrendingUp className="w-8 h-8 text-[var(--success)]" />
-          ) : (
-            <TrendingDown className="w-8 h-8 text-[var(--error)]" />
-          )}
+          <div
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-full ${
+              isPositive ? "bg-green-500/10" : "bg-red-500/10"
+            }`}
+          >
+            {isPositive ? (
+              <>
+                <ArrowUpRight className="w-5 h-5 text-[var(--success)]" />
+                <span className="text-sm font-bold text-[var(--success)]">
+                  Positive
+                </span>
+              </>
+            ) : (
+              <>
+                <ArrowDownRight className="w-5 h-5 text-[var(--error)]" />
+                <span className="text-sm font-bold text-[var(--error)]">
+                  Deficit
+                </span>
+              </>
+            )}
+          </div>
         </div>
-        <p className="text-sm text-[var(--text-muted)] mt-2">
-          {savingsRate.toFixed(1)}% savings rate
-        </p>
+        <div className="flex items-center gap-2">
+          <div className="h-2 flex-1 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[var(--accent-cyan)] to-[var(--accent-purple)] rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(savingsRate, 100)}%` }}
+            ></div>
+          </div>
+          <span className="text-sm font-bold text-[var(--accent-purple)]">
+            {savingsRate.toFixed(1)}%
+          </span>
+        </div>
+        <p className="text-sm text-[var(--text-muted)] mt-1">Savings Rate</p>
       </div>
 
       {/* Income, Expenses, Savings Grid */}
       <div className="grid grid-cols-3 gap-4">
         {/* Income */}
-        <div className="bg-[var(--bg-tertiary)] p-4 rounded border border-[var(--border-primary)]">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-[var(--success)]" />
-            <p className="text-xs uppercase tracking-wider text-[var(--text-secondary)]">
+        <div className="glass p-5 rounded-xl border border-[var(--border-primary)] hover:border-[var(--success)] transition-all duration-300 group">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-1.5 bg-green-500/10 rounded-lg group-hover:bg-green-500/20 transition-colors">
+              <TrendingUp className="w-4 h-4 text-[var(--success)]" />
+            </div>
+            <p className="text-xs font-semibold text-[var(--text-secondary)]">
               Income
             </p>
           </div>
@@ -61,10 +92,12 @@ export default function FinancialOverview({
         </div>
 
         {/* Expenses */}
-        <div className="bg-[var(--bg-tertiary)] p-4 rounded border border-[var(--border-primary)]">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingDown className="w-4 h-4 text-[var(--error)]" />
-            <p className="text-xs uppercase tracking-wider text-[var(--text-secondary)]">
+        <div className="glass p-5 rounded-xl border border-[var(--border-primary)] hover:border-[var(--error)] transition-all duration-300 group">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-1.5 bg-red-500/10 rounded-lg group-hover:bg-red-500/20 transition-colors">
+              <TrendingDown className="w-4 h-4 text-[var(--error)]" />
+            </div>
+            <p className="text-xs font-semibold text-[var(--text-secondary)]">
               Expenses
             </p>
           </div>
@@ -74,10 +107,12 @@ export default function FinancialOverview({
         </div>
 
         {/* Savings */}
-        <div className="bg-[var(--bg-tertiary)] p-4 rounded border border-[var(--border-primary)]">
-          <div className="flex items-center gap-2 mb-2">
-            <PiggyBank className="w-4 h-4 text-[var(--accent-purple)]" />
-            <p className="text-xs uppercase tracking-wider text-[var(--text-secondary)]">
+        <div className="glass p-5 rounded-xl border border-[var(--border-primary)] hover:border-[var(--accent-purple)] transition-all duration-300 group">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-1.5 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
+              <PiggyBank className="w-4 h-4 text-[var(--accent-purple)]" />
+            </div>
+            <p className="text-xs font-semibold text-[var(--text-secondary)]">
               Saved
             </p>
           </div>

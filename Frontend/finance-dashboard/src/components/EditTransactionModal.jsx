@@ -134,9 +134,9 @@ export default function EditTransactionModal({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-      <div className="bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-secondary)] border-2 border-[var(--accent-purple)]/30 rounded-2xl shadow-2xl max-w-md w-full max-h-[85vh] overflow-hidden">
+      <div className="bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-secondary)] border-2 border-[var(--accent-purple)]/30 rounded-2xl shadow-2xl max-w-md w-full max-h-[70vh] overflow-hidden flex flex-col">
         {/* Gradient Header */}
-        <div className="bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-cyan)] p-4">
+        <div className="bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-cyan)] p-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -161,7 +161,7 @@ export default function EditTransactionModal({
         </div>
 
         {/* Form Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
+        <div className="p-6 overflow-y-auto flex-1">
           {error && (
             <div className="bg-red-500/10 border border-[var(--error)] p-3 rounded mb-4">
               <p className="text-sm text-[var(--error)]">{error}</p>
