@@ -21,6 +21,8 @@ export const auth = betterAuth({
     "http://manorath.me",
     "http://www.manorath.me",
     "http://13.222.109.240",
+    "https://frontend.manorath.me",
+    "https://backend.manorath.me"
   ],
   secret: process.env.BETTER_AUTH_SECRET!,
   baseURL: process.env.BETTER_AUTH_URL!,

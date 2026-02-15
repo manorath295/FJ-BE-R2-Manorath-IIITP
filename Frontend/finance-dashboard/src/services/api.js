@@ -5,7 +5,7 @@ import axios from "axios";
 const API_BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:3000/api"
-    : window.location.origin + "/api";
+    : "https://backend.manorath.me/api";  
 
 // Create axios instance with default config
 
